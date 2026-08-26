@@ -1,0 +1,1325 @@
+@model JobNest.Models.EmployeeClass
+
+@{
+    Layout = null;
+    ViewBag.Title = "Create Your Candidate Profile | JobNest";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans for modern UI typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    @Styles.Render("~/Content/css")
+
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --primary-dark: #047857;
+            --primary-light: #ecfdf5;
+            --primary-glow: rgba(16, 185, 129, 0.2);
+            --secondary: #6366f1;
+            --secondary-light: #eef2ff;
+            --dark-heading: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --border-focus: #10b981;
+            --bg-canvas: #f8fafc;
+            --card-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.06), 0 0 15px rgba(0, 0, 0, 0.02);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-canvas);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.06) 0%, transparent 45%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Glass Navbar Header */
+        .glass-navbar {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 14px 0;
+            transition: var(--transition);
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none !important;
+        }
+
+        .brand-icon-wrapper {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 19px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        .badge-portal {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid #a7f3d0;
+        }
+
+        .btn-nav-login {
+            background: var(--dark-heading);
+            color: #ffffff !important;
+            padding: 9px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none !important;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-nav-login:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+        }
+
+        /* Page Layout */
+        .page-content-wrapper {
+            flex: 1;
+            padding: 36px 0 60px 0;
+        }
+
+        /* Hero Banner */
+        .form-hero-header {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 36px auto;
+        }
+
+        .pill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 30px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .form-hero-header h1 {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            margin: 0 0 10px 0;
+            letter-spacing: -0.8px;
+        }
+
+        .form-hero-header p {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Sidebar & Step Progress Card */
+        .sidebar-sticky-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            position: sticky;
+            top: 90px;
+            transition: var(--transition);
+        }
+
+        .sidebar-sticky-card h4 {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            margin: 0 0 4px 0;
+        }
+
+        .sidebar-sticky-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0 0 20px 0;
+        }
+
+        .step-progress-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+        .step-progress-nav::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 17px;
+            bottom: 15px;
+            width: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .step-nav-item {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            cursor: pointer;
+            text-decoration: none !important;
+            transition: var(--transition);
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .step-nav-item.active .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .step-nav-item.completed .step-circle {
+            background: #dcfce7;
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .step-label {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+
+        .step-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .step-nav-item.active .step-title {
+            color: var(--primary-dark);
+        }
+
+        .sidebar-tips-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .sidebar-tips-box h5 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sidebar-tips-box ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Form Card Container */
+        .registration-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            padding: 36px;
+            max-width: 860px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .registration-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #6366f1 100%);
+        }
+
+        /* Form Section Blocks */
+        .form-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 28px;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+        }
+
+        .form-block:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .block-header-icon {
+            width: 40px;
+            height: 40px;
+            background: #dcfce7;
+            color: #059669;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .block-header-text h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .block-header-text p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin: 2px 0 0 0;
+        }
+
+        /* Input Custom Styling & Consistent Required Star Placement */
+        .form-group-custom {
+            margin-bottom: 22px;
+        }
+
+        .form-group-custom label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .label-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .req-star {
+            color: #ef4444;
+            font-weight: 800;
+            margin-left: 2px;
+        }
+
+        .label-hint {
+            font-weight: 400;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .input-icon {
+            position: absolute;
+            left: 15px;
+            color: #94a3b8;
+            font-size: 15px;
+            pointer-events: none;
+            transition: var(--transition);
+            z-index: 5;
+        }
+
+        .form-control-modern {
+            width: 100%;
+            height: 48px;
+            padding: 10px 16px 10px 44px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark-heading);
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        textarea.form-control-modern {
+            height: auto;
+            padding-top: 14px;
+            resize: vertical;
+        }
+
+        .form-control-modern:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: #ffffff;
+        }
+
+        .input-wrapper:focus-within .input-icon {
+            color: var(--primary);
+        }
+
+        /* Premium Radio Grid Tile Component */
+        .radio-grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .radio-tile-card {
+            position: relative;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+            margin-bottom: 0;
+        }
+
+        .radio-tile-card:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .radio-tile-card input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            outline: none;
+            margin: 0;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .radio-tile-card input[type="radio"]::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            transform: scale(0);
+            transition: transform 0.15s ease-in-out;
+        }
+
+        .radio-tile-card input[type="radio"]:checked {
+            border-color: var(--primary);
+            background-color: var(--primary);
+        }
+
+        .radio-tile-card input[type="radio"]:checked::before {
+            transform: scale(1);
+        }
+
+        .radio-tile-card.selected-tile {
+            border-color: var(--primary);
+            background-color: #ecfdf5;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+
+        .radio-tile-label {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--dark-heading);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Qualification Cards Grid */
+        .qualification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .qual-tile {
+            padding: 14px 16px;
+        }
+
+        /* Photo Upload Label Card & File Picker */
+        .file-upload-wrapper {
+            position: relative;
+        }
+
+        .file-upload-card {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 24px;
+            background: #f8fafc;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .file-upload-card:hover, .file-upload-card.drag-over {
+            border-color: var(--primary);
+            background: #ecfdf5;
+        }
+
+        /* Hidden File Input bound to HttpPostedFileBase file parameter */
+        .file-upload-card input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .file-upload-icon {
+            width: 52px;
+            height: 52px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .file-upload-card:hover .file-upload-icon {
+            transform: scale(1.08);
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .file-upload-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            pointer-events: none;
+        }
+
+        .file-upload-subtext {
+            font-size: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Avatar Live Preview Container */
+        .avatar-preview-box {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            background: #ffffff;
+            border: 1.5px solid #a7f3d0;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+        }
+
+        .avatar-preview-img-wrapper {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #10b981;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-preview-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-preview-details {
+            flex: 1;
+        }
+
+        .avatar-preview-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            word-break: break-all;
+        }
+
+        .avatar-preview-size {
+            font-size: 12px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .avatar-remove-btn {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .avatar-remove-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .toggle-pwd-btn {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px;
+            transition: var(--transition);
+            z-index: 10;
+        }
+
+        .toggle-pwd-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Action Buttons */
+        .form-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .btn-submit-modern {
+            flex: 1;
+            height: 54px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 24px -5px rgba(16, 185, 129, 0.45);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-submit-modern:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px -5px rgba(16, 185, 129, 0.55);
+            color: #ffffff;
+        }
+
+        .btn-reset-modern {
+            height: 54px;
+            padding: 0 24px;
+            background: #ffffff;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-reset-modern:hover {
+            background: #f1f5f9;
+            color: var(--dark-heading);
+            border-color: #94a3b8;
+        }
+
+        /* Alerts */
+        .alert-custom-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-left: 5px solid #10b981;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.1);
+        }
+
+        .alert-custom-danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 5px solid #ef4444;
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 28px;
+            color: #991b1b;
+            font-size: 14px;
+        }
+
+        /* Site Footer */
+        .site-footer {
+            margin-top: auto;
+            padding: 24px 0;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        /* Responsive Fixes */
+        @@media (max-width: 991px) {
+            .sidebar-sticky-card {
+                position: relative;
+                top: 0;
+                margin-bottom: 28px;
+            }
+            .step-progress-nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .step-progress-nav::before {
+                display: none;
+            }
+            .step-nav-item {
+                padding: 6px 12px;
+                background: #f8fafc;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+            }
+            .step-nav-item.active {
+                background: #ecfdf5;
+                border-color: #a7f3d0;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .registration-card {
+                padding: 22px;
+                border-radius: 18px;
+            }
+            .form-block {
+                padding: 20px;
+            }
+            .form-actions-row {
+                flex-direction: column;
+            }
+            .btn-reset-modern {
+                width: 100%;
+            }
+            .form-hero-header h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="glass-navbar">
+        <div class="container">
+            <div class="row style-flex-header" style="display: flex; align-items: center; justify-content: space-between;">
+                <div class="col-xs-7">
+                    <a href="@Url.Action("Index", "Home")" class="brand-logo-container">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div class="brand-name">
+                            Job<span>Nest</span>
+                        </div>
+                        <span class="badge-portal hidden-xs">Candidate Registration</span>
+                    </a>
+                </div>
+                <div class="col-xs-5 text-right style-flex-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 16px;">
+                    <span class="hidden-xs" style="font-size: 13px; color: #64748b; font-weight: 600;">Already registered?</span>
+                    <a href="@Url.Action("Login", "Login")" class="btn-nav-login">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="page-content-wrapper">
+        <div class="container">
+
+            <!-- Hero Title Header -->
+            <div class="form-hero-header">
+                <span class="pill-tag">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Unlock Career Opportunities
+                </span>
+                <h1>Create Your Candidate Profile</h1>
+                <p>Complete your professional profile once to get recommended to top companies and receive direct interview invites.</p>
+            </div>
+
+            <!-- Registration Card Container -->
+            <div class="registration-card">
+
+                        <!-- Post Success Banner -->
+                        @if (IsPost && ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert-custom-success">
+                                <div style="display: flex; align-items: center; gap: 14px;">
+                                    <div style="width: 44px; height: 44px; background: #dcfce7; color: #15803d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="margin: 0 0 2px 0; font-size: 16px; font-weight: 800; color: #14532d;">Profile Created Successfully!</h4>
+                                        <p style="margin: 0; font-size: 13px; color: #166534;">Your candidate account is now live. Sign in to start applying for jobs.</p>
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("Login", "Login")" class="btn-nav-login" style="background: #15803d; flex-shrink: 0;">
+                                    Sign In Now
+                                </a>
+                            </div>
+                        }
+
+                        @using (Html.BeginForm("AddEmployee", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", role = "form", id = "candidateRegisterForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <!-- Error Summary Banner -->
+                            if (IsPost && !ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert-custom-danger">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-weight: 700;">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        <span>Please fix the following validation errors:</span>
+                                    </div>
+                                    @Html.ValidationSummary(true, "", new { style = "margin: 0; padding-left: 20px;" })
+                                </div>
+                            }
+
+                            <!-- BLOCK 1: PERSONAL PROFILE -->
+                            <div class="form-block" id="step-personal">
+                                <div class="block-header">
+                                    <div class="block-header-icon">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div class="block-header-text">
+                                        <h3>1. Personal Profile</h3>
+                                        <p>Your identity and personal background details</p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group-custom">
+                                            <label><span class="label-title">Full Name <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-user input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeeName, new { @class = "form-control-modern", placeholder = "e.g. Alexander Wright" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeeName, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group-custom">
+                                            <label><span class="label-title">Age (Years) <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-cake-candles input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeeAge, new { @class = "form-control-modern", type = "number", min = "18", max = "100", placeholder = "e.g. 25" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeeAge, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Gender Selection Tile Grid -->
+                                <div class="form-group-custom">
+                                    <label>
+                                        <span class="label-title">Gender <span class="req-star">*</span></span>
+                                    </label>
+                                    <div class="radio-grid-container">
+                                        <label class="radio-tile-card" for="genderMale">
+                                            @Html.RadioButtonFor(model => model.EmployeeGender, "Male", new { id = "genderMale" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-mars text-primary"></i> Male
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card" for="genderFemale">
+                                            @Html.RadioButtonFor(model => model.EmployeeGender, "Female", new { id = "genderFemale" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-venus text-danger"></i> Female
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card" for="genderOther">
+                                            @Html.RadioButtonFor(model => model.EmployeeGender, "Other", new { id = "genderOther" })
+                                            <span class="radio-tile-label">
+                                                 Other
+                                            </span>
+                                        </label>
+                                    </div>
+                                    @Html.ValidationMessageFor(model => model.EmployeeGender, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                </div>
+
+                                <!-- Profile Photo Upload Dropzone bound to HttpPostedFileBase file -->
+                                <div class="form-group-custom" style="margin-bottom: 0;">
+                                    <label><span class="label-title">Profile Picture <span class="req-star">*</span></span></label>
+                                    
+                                    <div class="file-upload-wrapper">
+                                        <label class="file-upload-card" for="file" id="fileUploadDropzone">
+                                            @Html.TextBox("file", "", new { type = "file", id = "file", accept = "image/*" })
+                                            <div class="file-upload-icon">
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            </div>
+                                            <div class="file-upload-text" id="uploadCardTitle">
+                                                Click or Drag &amp; Drop to upload photo
+                                            </div>
+                                            <div class="file-upload-subtext">Supports PNG, JPG, GIF up to 5MB</div>
+                                        </label>
+
+                                        <!-- Live Preview Box -->
+                                        <div class="avatar-preview-box" id="avatarPreviewBox">
+                                            <div class="avatar-preview-img-wrapper">
+                                                <img id="avatarPreviewImg" src="" alt="Profile Preview" />
+                                            </div>
+                                            <div class="avatar-preview-details">
+                                                <div class="avatar-preview-name" id="avatarFileName">filename.jpg</div>
+                                                <div class="avatar-preview-size" id="avatarFileSize">0 KB</div>
+                                            </div>
+                                            <button type="button" class="avatar-remove-btn" id="avatarRemoveBtn">
+                                                <i class="fa-solid fa-trash-can"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOCK 2: CONTACT DETAILS -->
+                            <div class="form-block" id="step-contact">
+                                <div class="block-header">
+                                    <div class="block-header-icon">
+                                        <i class="fa-solid fa-address-book"></i>
+                                    </div>
+                                    <div class="block-header-text">
+                                        <h3>2. Contact Details</h3>
+                                        <p>Where recruiters and prospective employers reach you</p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group-custom">
+                                            <label><span class="label-title">Email Address <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-envelope input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeeEmail, new { @class = "form-control-modern", type = "email", placeholder = "alexander@example.com" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeeEmail, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group-custom">
+                                            <label><span class="label-title">Phone Number <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-phone input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeePhone, new { @class = "form-control-modern", placeholder = "+1 (555) 234-5678" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeePhone, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group-custom" style="margin-bottom: 0;">
+                                    <label><span class="label-title">Current Residential Address <span class="req-star">*</span></span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fa-solid fa-location-dot input-icon" style="top: 15px;"></i>
+                                        @Html.TextAreaFor(model => model.EmployeeAddress, new { @class = "form-control-modern", rows = "3", placeholder = "Street address, Apt/Suite, City, State, ZIP Code" })
+                                    </div>
+                                    @Html.ValidationMessageFor(model => model.EmployeeAddress, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                </div>
+                            </div>
+
+                            <!-- BLOCK 3: QUALIFICATIONS & SKILLS -->
+                            <div class="form-block" id="step-qualifications">
+                                <div class="block-header">
+                                    <div class="block-header-icon">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <div class="block-header-text">
+                                        <h3>3. Qualifications &amp; Expertise</h3>
+                                        <p>Your educational background and professional skill set</p>
+                                    </div>
+                                </div>
+
+                                <!-- Qualification Grid Radio Tiles -->
+                                <div class="form-group-custom">
+                                    <label>
+                                        <span class="label-title">Highest Qualification <span class="req-star">*</span></span>
+                                        <span class="label-hint">(Select highest degree attained)</span>
+                                    </label>
+                                    <div class="qualification-grid">
+                                        <label class="radio-tile-card qual-tile" for="qualHighSchool">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "High School (10th/12th)", new { id = "qualHighSchool" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-school text-secondary"></i> High School
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card qual-tile" for="qualDiploma">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "Diploma", new { id = "qualDiploma" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-scroll text-info"></i> Diploma
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card qual-tile" for="qualBachelor">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "Bachelor's Degree (B.Tech / B.E / B.Sc / BCA)", new { id = "qualBachelor" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-graduation-cap text-success"></i> Bachelor's Degree
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card qual-tile" for="qualMaster">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "Master's Degree (M.Tech / M.E / M.Sc / MCA)", new { id = "qualMaster" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-award text-primary"></i> Master's Degree
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card qual-tile" for="qualDoctorate">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "Doctorate / Ph.D", new { id = "qualDoctorate" })
+                                            <span class="radio-tile-label">
+                                                <i class="fa-solid fa-microscope" style="color:#8b5cf6;"></i> Doctorate / Ph.D
+                                            </span>
+                                        </label>
+                                        <label class="radio-tile-card qual-tile" for="qualOther">
+                                            @Html.RadioButtonFor(model => model.EmployeeQualification, "Other", new { id = "qualOther" })
+                                            <span class="radio-tile-label">
+                                                Other
+                                            </span>
+                                        </label>
+                                    </div>
+                                    @Html.ValidationMessageFor(model => model.EmployeeQualification, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group-custom" style="margin-bottom: 0;">
+                                            <label><span class="label-title">Key Skills <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-code input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeeSkills, new { @class = "form-control-modern", placeholder = "e.g. C#, ASP.NET MVC, SQL Server, React, Python" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeeSkills, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group-custom" style="margin-bottom: 0;">
+                                            <label><span class="label-title">Experience (Years) <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-briefcase input-icon"></i>
+                                                @Html.TextBoxFor(model => model.EmployeeExperience, new { @class = "form-control-modern", type = "number", min = "0", max = "50", placeholder = "e.g. 3" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.EmployeeExperience, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOCK 4: ACCOUNT SECURITY -->
+                            <div class="form-block" id="step-security" style="margin-bottom: 32px;">
+                                <div class="block-header">
+                                    <div class="block-header-icon">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </div>
+                                    <div class="block-header-text">
+                                        <h3>4. Account Credentials</h3>
+                                        <p>Set up your login credentials to access the JobNest portal</p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group-custom" style="margin-bottom: 0;">
+                                            <label><span class="label-title">Choose Username <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-at input-icon"></i>
+                                                @Html.TextBoxFor(model => model.Username, new { @class = "form-control-modern", placeholder = "Create a unique username" })
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group-custom" style="margin-bottom: 0;">
+                                            <label><span class="label-title">Create Password <span class="req-star">*</span></span></label>
+                                            <div class="input-wrapper">
+                                                <i class="fa-solid fa-key input-icon"></i>
+                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control-modern", id = "pwdInput", placeholder = "Min. 6 characters" })
+                                                <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Toggle Password Visibility">
+                                                    <i class="fa-solid fa-eye" id="togglePwdIcon"></i>
+                                                </button>
+                                            </div>
+                                            @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger small", style = "display:block; margin-top:4px;" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit & Reset Action Buttons -->
+                            <div class="form-actions-row">
+                                <button type="submit" class="btn-submit-modern">
+                                    <i class="fa-solid fa-paper-plane"></i> Submit &amp; Create Profile
+                                </button>
+                                <button type="button" class="btn-reset-modern" id="resetBtn" title="Reset Form Fields">
+                                    <i class="fa-solid fa-rotate-left"></i> Clear Form
+                                </button>
+                            </div>
+                        }
+                    </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p style="margin: 0;">&copy; @DateTime.Now.Year JobNest Portal. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        $(document).ready(function () {
+            // 1. Radio Tile Selection Visual Sync
+            function syncRadioState() {
+                $('.radio-tile-card').each(function () {
+                    var radioInput = $(this).find('input[type="radio"]');
+                    if (radioInput.is(':checked')) {
+                        $(this).addClass('selected-tile');
+                    } else {
+                        $(this).removeClass('selected-tile');
+                    }
+                });
+            }
+
+            $('.radio-tile-card input[type="radio"]').on('change', function () {
+                syncRadioState();
+            });
+            syncRadioState();
+
+            // 2. Toggle Password Visibility
+            $('#togglePwdBtn').on('click', function (e) {
+                e.preventDefault();
+                var input = $('#pwdInput');
+                var icon = $('#togglePwdIcon');
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // 3. Live Avatar Image Preview Handling
+            function handleFileSelect(fileObj) {
+                if (!fileObj) return;
+
+                if (fileObj.type.match('image.*')) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#avatarPreviewImg').attr('src', e.target.result);
+                        $('#avatarFileName').text(fileObj.name);
+                        
+                        var sizeKB = (fileObj.size / 1024).toFixed(1);
+                        var sizeText = sizeKB > 1024 ? (sizeKB / 1024).toFixed(2) + ' MB' : sizeKB + ' KB';
+                        $('#avatarFileSize').text(sizeText);
+
+                        $('#fileUploadDropzone').hide();
+                        $('#avatarPreviewBox').css('display', 'flex');
+                    };
+                    reader.readAsDataURL(fileObj);
+                } else {
+                    alert('Please select a valid image file (PNG, JPG, GIF).');
+                }
+            }
+
+            $('#file').on('change', function () {
+                var fileObj = this.files[0];
+                handleFileSelect(fileObj);
+            });
+
+            // Avatar Remove Button Action
+            $('#avatarRemoveBtn').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#file').val('');
+                $('#avatarPreviewImg').attr('src', '');
+                $('#avatarPreviewBox').hide();
+                $('#fileUploadDropzone').css('display', 'flex');
+            });
+
+            // Drag & Drop Highlight on Upload Card
+            var dropzone = $('#fileUploadDropzone');
+            dropzone.on('dragover dragenter', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).addClass('drag-over');
+            });
+
+            dropzone.on('dragleave dragend drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).removeClass('drag-over');
+            });
+
+            // Reset Form Handler (Explicitly Wipes All Inputs)
+            $('#resetBtn').on('click', function (e) {
+                e.preventDefault();
+                var form = $('#candidateRegisterForm');
+                form.find('input[type="text"], input[type="number"], input[type="email"], input[type="password"], textarea').val('');
+                form.find('input[type="radio"]').prop('checked', false);
+                $('#file').val('');
+                $('#EmployeePhotoHidden').val('');
+                $('#avatarPreviewImg').attr('src', '');
+                $('#avatarPreviewBox').hide();
+                $('#fileUploadDropzone').css('display', 'flex');
+                syncRadioState();
+            });
+        });
+    </script>
+</body>
+</html>
