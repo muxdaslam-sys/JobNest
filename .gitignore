@@ -1,0 +1,50 @@
+## Visual Studio / .NET .gitignore
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+Generated\ Files/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+!**/packages/buildMultiTargeting/
+
+# Visual Studio Code
+.vscode/
+
+# Windows temp files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# App_Data database files (ignoring local DB files if any)
+*.mdf
+*.ldf
+*.log
