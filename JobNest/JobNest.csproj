@@ -134,7 +134,7 @@
     <Compile Include="Controllers\CompanyController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Employee.cs">
       <DependentUpon>JobNest.tt</DependentUpon>
     </Compile>
@@ -228,9 +228,10 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Company\AddCompany.cshtml" />
     <Content Include="Views\Employee\AddEmployee.cshtml" />
-    <Content Include="Views\Login\Login.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Employee\Index.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
+    <Content Include="Views\Company\AddJobPosting.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
