@@ -1,0 +1,1132 @@
+@model JobNest.JobPosting
+
+@{
+    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    ViewBag.Title = "Post a New Job Opening";
+}
+
+@section styles {
+    <style>
+        /* Hero Sub-header */
+        .page-hero {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 50%, #185adb 100%);
+            color: #ffffff;
+            padding: 32px 0 38px 0;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.15);
+        }
+
+        .page-hero h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .page-hero p {
+            font-size: 14px;
+            color: #93c5fd;
+            margin: 0;
+            max-width: 650px;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .hero-badge-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #e0f2fe;
+        }
+
+        /* Main Section */
+        .main-wrapper {
+            padding: 32px 0 60px 0;
+        }
+
+        /* Form Card */
+        .job-form-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .form-section:last-of-type {
+            border-bottom: none;
+            margin-bottom: 10px;
+            padding-bottom: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-number {
+            width: 28px;
+            height: 28px;
+            background-color: #eff6ff;
+            color: #185adb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid #bfdbfe;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-left: auto;
+        }
+
+        /* Form Groups and Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-label .req {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-group-addon {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            color: #64748b;
+            min-width: 44px;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .form-control {
+            height: 44px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: none;
+            font-size: 14px;
+            color: #1e293b;
+            padding: 8px 14px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .input-group .form-control:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .form-control:focus {
+            border-color: #185adb;
+            box-shadow: 0 0 0 3px rgba(24, 90, 219, 0.15);
+            outline: none;
+        }
+
+        textarea.form-control {
+            height: auto;
+            resize: vertical;
+        }
+
+        /* Interactive Suggestion Chips / Badges */
+        .suggestion-box {
+            margin-top: 8px;
+        }
+
+        .suggestion-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip-btn {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chip-btn:hover {
+            background-color: #e0f2fe;
+            border-color: #bae6fd;
+            color: #0369a1;
+        }
+
+        .chip-btn.active-chip {
+            background-color: #185adb;
+            border-color: #185adb;
+            color: #ffffff;
+        }
+
+        .chip-btn i {
+            font-size: 10px;
+        }
+
+        /* Salary Converter / Live Badge */
+        .salary-preview-badge {
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .form-actions-bar {
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            margin: 28px -32px -32px -32px;
+            padding: 20px 32px;
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .btn-post-job {
+            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(24, 90, 219, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-post-job:hover {
+            background: linear-gradient(135deg, #1041a3 0%, #185adb 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(24, 90, 219, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-reset-form {
+            background-color: #ffffff;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 11px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .btn-reset-form:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            border-color: #94a3b8;
+        }
+
+        /* Success & Error Alert Banners */
+        .naukri-success-banner {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #16a34a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.08);
+        }
+
+        .banner-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .banner-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .banner-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #dcfce7;
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .banner-text h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #14532d;
+        }
+
+        .banner-text p {
+            margin: 0;
+            font-size: 13px;
+            color: #166534;
+        }
+
+        .btn-success-action {
+            background-color: #16a34a;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-success-action:hover {
+            background-color: #15803d;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        /* Right Sidebar Cards */
+        .sidebar-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-card-title i {
+            color: #185adb;
+        }
+
+        .sidebar-tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.45;
+        }
+
+        .sidebar-tip-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-tip-item i {
+            color: #f59e0b;
+            font-size: 14px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Live Preview Card (Naukri Search Result Card Style) */
+        .preview-job-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #185adb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .preview-job-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin: 0 0 4px 0;
+            word-break: break-word;
+        }
+
+        .preview-company-name {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .preview-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .preview-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .preview-meta-item i {
+            color: #94a3b8;
+        }
+
+        .preview-skills-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .preview-skill-tag {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .preview-status-badge {
+            display: inline-block;
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* Validation error enhancements */
+        .text-danger {
+            color: #ef4444;
+        }
+
+        .field-validation-error {
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .input-validation-error {
+            border-color: #ef4444 !important;
+            background-color: #fffafb;
+        }
+
+        .input-validation-error:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+        }
+
+        @@media (max-width: 767px) {
+            .job-form-card {
+                padding: 20px 16px;
+            }
+            .form-actions-bar {
+                margin: 20px -16px -20px -16px;
+                padding: 16px;
+                flex-direction: column-reverse;
+            }
+            .btn-post-job, .btn-reset-form {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<!-- Hero Header Banner -->
+<div class="page-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h1><i class="fa-solid fa-circle-plus" style="color: #60a5fa; margin-right: 8px;"></i>Post a New Job Requirement</h1>
+                <p>Reach over 2.5 million verified candidates. Provide comprehensive job details to attract the most qualified talent.</p>
+                <div class="hero-badges">
+                    <span class="hero-badge-item"><i class="fa-solid fa-clock"></i> 30-Day Active Validity</span>
+                    <span class="hero-badge-item"><i class="fa-solid fa-bolt"></i> Instant Visibility on Job Search</span>
+                    <span class="hero-badge-item"><i class="fa-solid fa-shield-check"></i> Verified Recruiter Account</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-wrapper">
+    <div class="container">
+
+        <!-- Success Alert Banner (Displayed after successful POST) -->
+        @if (IsPost && ViewData.ModelState.IsValid)
+        {
+            <div class="naukri-success-banner">
+                <div class="banner-flex">
+                    <div class="banner-info">
+                        <div class="banner-icon-circle">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="banner-text">
+                            <h4>Job Opening Published Successfully!</h4>
+                            <p>Your job posting is now active and live for job seekers on the JobNest portal.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="@Url.Action("AddJobPosting", "Company")" class="btn-success-action" style="background-color: #0284c7;">
+                            <i class="fa-solid fa-plus"></i> Post Another Job
+                        </a>
+                        <a href="@Url.Action("Index", "Company")" class="btn-success-action">
+                            <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Left Main Column: Job Posting Form -->
+            <div class="col-md-8">
+                <div class="job-form-card">
+                    
+                    @using (Html.BeginForm("AddJobPosting", "Company", FormMethod.Post, new { role = "form", id = "addJobPostingForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <!-- Error Alert Summary Box -->
+                        if (IsPost && !ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger" style="border-radius: 8px; font-size: 13px; margin-bottom: 24px;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Please resolve the following errors:</strong>
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger", style = "margin-top: 6px; margin-bottom: 0;" })
+                            </div>
+                        }
+
+                        <!-- Section 1: Job Title & Role Info -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-number">1</div>
+                                <h3 class="section-title">Job Designation &amp; Role</h3>
+                                <span class="section-subtitle"><i class="fa-solid fa-asterisk text-danger"></i> Required info</span>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.JobTitle, "Job Title / Role Designation", new { @class = "form-label" })
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa-solid fa-briefcase"></i></span>
+                                    @Html.TextBoxFor(model => model.JobTitle, new { 
+                                        @class = "form-control", 
+                                        id = "jobTitleInput",
+                                        placeholder = "e.g. Senior Full Stack .NET Developer, QA Engineer, Data Analyst",
+                                        required = "required",
+                                        maxlength = "150"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(model => model.JobTitle, "", new { @class = "text-danger" })
+                                <span class="form-hint">Enter a clear, standard industry job title for optimal search matching.</span>
+
+                                <!-- Quick Select Job Title Chips -->
+                                <div class="suggestion-box">
+                                    <span class="suggestion-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Quick Suggestions:</span>
+                                    <div class="chips-container">
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="Senior .NET Full Stack Developer">.NET Full Stack</button>
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="Software Development Engineer (SDE)">Software Engineer</button>
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="Frontend React / Angular Developer">Frontend Developer</button>
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="Backend C# / Web API Developer">Backend Developer</button>
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="QA Automation Engineer">QA Automation</button>
+                                        <button type="button" class="chip-btn" data-target="jobTitleInput" data-val="Data Analyst / BI Specialist">Data Analyst</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Experience & Qualification Requirements -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-number">2</div>
+                                <h3 class="section-title">Candidate Profile &amp; Eligibility</h3>
+                            </div>
+
+                            <div class="row">
+                                <!-- Experience Required -->
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        @Html.LabelFor(model => model.ExperienceRequired, "Experience Required (In Years)", new { @class = "form-label" })
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa-solid fa-business-time"></i></span>
+                                            @Html.TextBoxFor(model => model.ExperienceRequired, new { 
+                                                @class = "form-control", 
+                                                id = "experienceInput",
+                                                type = "number", 
+                                                min = "0", 
+                                                max = "40", 
+                                                placeholder = "e.g. 3",
+                                                required = "required"
+                                            })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.ExperienceRequired, "", new { @class = "text-danger" })
+                                        <span class="form-hint">Enter 0 for freshers or number of years (e.g. 2, 5).</span>
+
+                                        <!-- Experience Quick Chips -->
+                                        <div class="suggestion-box">
+                                            <div class="chips-container">
+                                                <button type="button" class="chip-btn" data-target="experienceInput" data-val="0">0 (Fresher)</button>
+                                                <button type="button" class="chip-btn" data-target="experienceInput" data-val="2">2 Yrs</button>
+                                                <button type="button" class="chip-btn" data-target="experienceInput" data-val="4">4 Yrs</button>
+                                                <button type="button" class="chip-btn" data-target="experienceInput" data-val="6">6 Yrs</button>
+                                                <button type="button" class="chip-btn" data-target="experienceInput" data-val="8">8+ Yrs</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Required Qualification -->
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        @Html.LabelFor(model => model.RequiredQualification, "Required Qualification / Degree", new { @class = "form-label" })
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa-solid fa-graduation-cap"></i></span>
+                                            @Html.TextBoxFor(model => model.RequiredQualification, new { 
+                                                @class = "form-control", 
+                                                id = "qualificationInput",
+                                                placeholder = "e.g. B.Tech / B.E in CS / IT, MCA, BCA",
+                                                required = "required",
+                                                maxlength = "120"
+                                            })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.RequiredQualification, "", new { @class = "text-danger" })
+                                        <span class="form-hint">Minimum required educational qualification.</span>
+
+                                        <!-- Qualification Quick Chips -->
+                                        <div class="suggestion-box">
+                                            <div class="chips-container">
+                                                <button type="button" class="chip-btn" data-target="qualificationInput" data-val="B.Tech / B.E (CS/IT/ECE)">B.Tech/B.E</button>
+                                                <button type="button" class="chip-btn" data-target="qualificationInput" data-val="MCA / BCA">MCA/BCA</button>
+                                                <button type="button" class="chip-btn" data-target="qualificationInput" data-val="B.Sc / M.Sc (Computer Science)">B.Sc/M.Sc</button>
+                                                <button type="button" class="chip-btn" data-target="qualificationInput" data-val="Any Graduate / Post Graduate">Any Graduate</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Key Skills Required -->
+                            <div class="form-group" style="margin-top: 10px;">
+                                @Html.LabelFor(model => model.RequiredSkills, "Key Skills & Technologies", new { @class = "form-label" })
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa-solid fa-tags"></i></span>
+                                    @Html.TextAreaFor(model => model.RequiredSkills, new { 
+                                        @class = "form-control", 
+                                        id = "skillsInput",
+                                        rows = "3", 
+                                        placeholder = "e.g. C#, ASP.NET MVC, Entity Framework, SQL Server, Web API, JavaScript, HTML5/CSS3",
+                                        required = "required"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(model => model.RequiredSkills, "", new { @class = "text-danger" })
+                                <span class="form-hint">Separate multiple skills with commas. Candidates matching these skills will be prioritized.</span>
+
+                                <!-- Key Skill Tag Chips -->
+                                <div class="suggestion-box">
+                                    <span class="suggestion-title"><i class="fa-solid fa-plus-circle"></i> Click to add popular skills:</span>
+                                    <div class="chips-container">
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="C#"><i class="fa-solid fa-plus"></i> C#</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="ASP.NET MVC"><i class="fa-solid fa-plus"></i> ASP.NET MVC</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill=".NET Core"><i class="fa-solid fa-plus"></i> .NET Core</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="SQL Server"><i class="fa-solid fa-plus"></i> SQL Server</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="Entity Framework"><i class="fa-solid fa-plus"></i> EF</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="Web API / REST"><i class="fa-solid fa-plus"></i> Web API</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="JavaScript"><i class="fa-solid fa-plus"></i> JavaScript</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="React.js"><i class="fa-solid fa-plus"></i> React</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="Angular"><i class="fa-solid fa-plus"></i> Angular</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="HTML5/CSS3"><i class="fa-solid fa-plus"></i> HTML/CSS</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="Git"><i class="fa-solid fa-plus"></i> Git</button>
+                                        <button type="button" class="chip-btn skill-append-chip" data-skill="Azure"><i class="fa-solid fa-plus"></i> Azure</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Location & Compensation Details -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-number">3</div>
+                                <h3 class="section-title">Location &amp; Compensation</h3>
+                            </div>
+
+                            <div class="row">
+                                <!-- Job Location -->
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        @Html.LabelFor(model => model.JobLocation, "Job Location / City", new { @class = "form-label" })
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa-solid fa-location-dot"></i></span>
+                                            @Html.TextBoxFor(model => model.JobLocation, new { 
+                                                @class = "form-control", 
+                                                id = "locationInput",
+                                                placeholder = "e.g. Bangalore, Hyderabad, Pune, Remote",
+                                                required = "required",
+                                                maxlength = "100"
+                                            })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.JobLocation, "", new { @class = "text-danger" })
+                                        <span class="form-hint">Specify the work location or 'Remote / Work from Home'.</span>
+
+                                        <!-- Location Quick Chips -->
+                                        <div class="suggestion-box">
+                                            <div class="chips-container">
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Bangalore / Bengaluru">Bangalore</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Hyderabad / Secunderabad">Hyderabad</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Pune">Pune</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Mumbai / Navi Mumbai">Mumbai</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Delhi / NCR / Gurgaon / Noida">Delhi/NCR</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Chennai">Chennai</button>
+                                                <button type="button" class="chip-btn" data-target="locationInput" data-val="Remote / Work From Home">Remote</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Salary (CTC) -->
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        @Html.LabelFor(model => model.Salary, "Annual Salary / CTC (in ₹ INR)", new { @class = "form-label" })
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                                            @Html.TextBoxFor(model => model.Salary, new { 
+                                                @class = "form-control", 
+                                                id = "salaryInput",
+                                                type = "number", 
+                                                step = "1000", 
+                                                min = "1", 
+                                                placeholder = "e.g. 600000 (for 6 LPA)",
+                                                required = "required"
+                                            })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.Salary, "", new { @class = "text-danger" })
+                                        
+                                        <!-- Live Salary Formatter Preview -->
+                                        <div id="salaryPreviewContainer" style="display: none;">
+                                            <div class="salary-preview-badge">
+                                                <i class="fa-solid fa-circle-check"></i> <span id="salaryFormattedText">₹ 0</span>
+                                            </div>
+                                        </div>
+
+                                        <span class="form-hint">Enter annual compensation in INR. Transparent salary attracts 40% more applications.</span>
+
+                                        <!-- Salary Quick Chips -->
+                                        <div class="suggestion-box">
+                                            <div class="chips-container">
+                                                <button type="button" class="chip-btn" data-target="salaryInput" data-val="350000">3.5 LPA</button>
+                                                <button type="button" class="chip-btn" data-target="salaryInput" data-val="600000">6.0 LPA</button>
+                                                <button type="button" class="chip-btn" data-target="salaryInput" data-val="1000000">10 LPA</button>
+                                                <button type="button" class="chip-btn" data-target="salaryInput" data-val="1500000">15 LPA</button>
+                                                <button type="button" class="chip-btn" data-target="salaryInput" data-val="2500000">25 LPA</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions Bar -->
+                        <div class="form-actions-bar">
+                            <button type="button" class="btn-reset-form" id="btnResetForm">
+                                <i class="fa-solid fa-rotate-left"></i> Reset Fields
+                            </button>
+
+                            <button type="submit" class="btn-post-job" id="btnSubmitJob">
+                                <i class="fa-solid fa-paper-plane"></i> Publish Job Opening
+                            </button>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+            <!-- Right Sidebar Column: Live Preview & Naukri Guidelines -->
+            <div class="col-md-4">
+                
+                <!-- Live Preview Card (How Job Seekers see it) -->
+                <div class="sidebar-card">
+                    <h4 class="sidebar-card-title">
+                        <i class="fa-solid fa-eye text-primary"></i> Live Candidate View
+                    </h4>
+                    <p style="font-size: 12px; color: #64748b; margin: 0 0 10px 0;">This is how your job card will appear to applicants in search results:</p>
+
+                    <div class="preview-job-card">
+                        <h4 class="preview-job-title" id="previewTitle">Senior .NET Developer</h4>
+                        <div class="preview-company-name">
+                            <i class="fa-solid fa-building" style="color: #94a3b8; margin-right: 4px;"></i> <span id="previewCompany">Your Company</span>
+                        </div>
+                        
+                        <div class="preview-meta-row">
+                            <div class="preview-meta-item">
+                                <i class="fa-solid fa-briefcase"></i> <span id="previewExp">3 - 5 Yrs</span>
+                            </div>
+                            <div class="preview-meta-item">
+                                <i class="fa-solid fa-indian-rupee-sign"></i> <span id="previewSalary">₹ 6,00,000 PA</span>
+                            </div>
+                            <div class="preview-meta-item">
+                                <i class="fa-solid fa-location-dot"></i> <span id="previewLoc">Bangalore</span>
+                            </div>
+                        </div>
+
+                        <div class="preview-skills-row" id="previewSkillsTags">
+                            <span class="preview-skill-tag">C#</span>
+                            <span class="preview-skill-tag">ASP.NET</span>
+                            <span class="preview-skill-tag">SQL</span>
+                        </div>
+
+                        <span class="preview-status-badge">
+                            <i class="fa-solid fa-circle" style="font-size: 7px; color: #2563eb; margin-right: 3px;"></i> Active Now
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Recruiter Best Practice Tips -->
+                <div class="sidebar-card">
+                    <h4 class="sidebar-card-title">
+                        <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> Posting Best Practices
+                    </h4>
+                    
+                    <div class="sidebar-tip-item">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <div><strong>Accurate Job Titles:</strong> Specific titles like <em>"Backend .NET Developer"</em> receive 4x more relevant applicants than vague titles.</div>
+                    </div>
+
+                    <div class="sidebar-tip-item">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <div><strong>Key Skills Matter:</strong> Ensure at least 4-6 primary technical skills are listed for high algorithm matching accuracy.</div>
+                    </div>
+
+                    <div class="sidebar-tip-item">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <div><strong>Transparent Salary:</strong> Job postings mentioning competitive CTC get 55% higher response rate from active job seekers.</div>
+                    </div>
+
+                    <div class="sidebar-tip-item">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <div><strong>Active Window:</strong> All postings remain active for 30 days and can be managed directly from your recruiter dashboard.</div>
+                    </div>
+                </div>
+
+                <!-- Need Help / Support Card -->
+                <div class="sidebar-card" style="background: linear-gradient(145deg, #f8fafc 0%, #eff6ff 100%); border-color: #dbeafe;">
+                    <h4 class="sidebar-card-title" style="color: #1e3a8a;">
+                        <i class="fa-solid fa-headset" style="color: #185adb;"></i> Recruiter Support
+                    </h4>
+                    <p style="font-size: 13px; color: #475569; margin-bottom: 12px;">
+                        Need help writing a job description or configuring hiring requirements?
+                    </p>
+                    <a href="mailto:support@jobnest.com" class="btn btn-default btn-sm" style="font-weight: 600; color: #185adb; border-color: #bfdbfe; background: #ffffff;">
+                        <i class="fa-solid fa-envelope"></i> Contact Support
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(document).ready(function () {
+            
+            // Format numbers to Indian Currency (Lakhs / Crores / Rupees)
+            function formatIndianCurrency(num) {
+                if (!num || isNaN(num) || num <= 0) return "";
+                var n = parseFloat(num);
+                if (n >= 10000000) {
+                    return "₹ " + (n / 10000000).toFixed(2) + " Cr PA (" + n.toLocaleString('en-IN') + ")";
+                } else if (n >= 100000) {
+                    return "₹ " + (n / 100000).toFixed(2) + " LPA (₹ " + n.toLocaleString('en-IN') + " PA)";
+                } else {
+                    return "₹ " + n.toLocaleString('en-IN') + " PA";
+                }
+            }
+
+            // Update Live Preview Card
+            function updateLivePreview() {
+                var title = $("#jobTitleInput").val().trim();
+                var exp = $("#experienceInput").val().trim();
+                var qual = $("#qualificationInput").val().trim();
+                var skills = $("#skillsInput").val().trim();
+                var loc = $("#locationInput").val().trim();
+                var sal = $("#salaryInput").val().trim();
+
+                // Title
+                if (title) {
+                    $("#previewTitle").text(title);
+                } else {
+                    $("#previewTitle").text("Job Title (e.g. .NET Developer)");
+                }
+
+                // Experience
+                if (exp !== "") {
+                    var expNum = parseInt(exp, 10);
+                    if (expNum === 0) {
+                        $("#previewExp").text("0 Yrs (Fresher)");
+                    } else {
+                        $("#previewExp").text(expNum + "+ Yrs Exp");
+                    }
+                } else {
+                    $("#previewExp").text("0 - 3 Yrs");
+                }
+
+                // Location
+                if (loc) {
+                    $("#previewLoc").text(loc);
+                } else {
+                    $("#previewLoc").text("Location");
+                }
+
+                // Salary & CTC Preview
+                if (sal && !isNaN(sal) && parseFloat(sal) > 0) {
+                    var formatted = formatIndianCurrency(sal);
+                    $("#salaryFormattedText").text(formatted);
+                    $("#salaryPreviewContainer").show();
+                    $("#previewSalary").text(formatted);
+                } else {
+                    $("#salaryPreviewContainer").hide();
+                    $("#previewSalary").text("Not Disclosed");
+                }
+
+                // Skills Tags Preview
+                var skillsContainer = $("#previewSkillsTags");
+                skillsContainer.empty();
+                if (skills) {
+                    var skillList = skills.split(/[,;\n]+/);
+                    var count = 0;
+                    for (var i = 0; i < skillList.length; i++) {
+                        var s = skillList[i].trim();
+                        if (s && count < 6) {
+                            skillsContainer.append($('<span class="preview-skill-tag"></span>').text(s));
+                            count++;
+                        }
+                    }
+                    if (skillList.length > 6) {
+                        skillsContainer.append($('<span class="preview-skill-tag">+' + (skillList.length - 6) + ' more</span>'));
+                    }
+                } else {
+                    skillsContainer.append('<span class="preview-skill-tag">Skills will appear here</span>');
+                }
+            }
+
+            // Quick suggestion chips single value insertion
+            $(".chip-btn[data-target]").click(function (e) {
+                e.preventDefault();
+                var targetId = $(this).data("target");
+                var val = $(this).data("val");
+                var targetElem = $("#" + targetId);
+                
+                targetElem.val(val).trigger("input").trigger("change");
+                
+                // Highlight chip visually in group
+                $(this).parent().find(".chip-btn").removeClass("active-chip");
+                $(this).addClass("active-chip");
+            });
+
+            // Append skill to Key Skills textarea
+            $(".skill-append-chip").click(function (e) {
+                e.preventDefault();
+                var skill = $(this).data("skill");
+                var currentSkills = $("#skillsInput").val().trim();
+
+                if (!currentSkills) {
+                    $("#skillsInput").val(skill);
+                } else {
+                    // Check if skill is already present
+                    var regex = new RegExp("\\b" + skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\b", "i");
+                    if (!regex.test(currentSkills)) {
+                        $("#skillsInput").val(currentSkills + ", " + skill);
+                    }
+                }
+                $("#skillsInput").trigger("input").trigger("change");
+            });
+
+            // Attach input event listeners for live preview updates
+            $("#jobTitleInput, #experienceInput, #qualificationInput, #skillsInput, #locationInput, #salaryInput").on("input change keyup", function () {
+                updateLivePreview();
+            });
+
+            // Form Reset button
+            $("#btnResetForm").click(function (e) {
+                e.preventDefault();
+                $("#addJobPostingForm").find("input[type=text], input[type=number], textarea").val("");
+                $("#addJobPostingForm").find(".field-validation-error").empty();
+                $(".chip-btn").removeClass("active-chip");
+                $("#salaryPreviewContainer").hide();
+                updateLivePreview();
+            });
+
+            // Client-side validation enhancement before submit
+            $("#addJobPostingForm").submit(function (e) {
+                var isValid = true;
+
+                // Validate Job Title
+                var title = $("#jobTitleInput").val().trim();
+                if (!title) {
+                    isValid = false;
+                    $("#jobTitleInput").addClass("input-validation-error");
+                } else {
+                    $("#jobTitleInput").removeClass("input-validation-error");
+                }
+
+                // Validate Experience
+                var exp = $("#experienceInput").val();
+                if (exp === "" || isNaN(exp) || parseInt(exp) < 0 || parseInt(exp) > 50) {
+                    isValid = false;
+                    $("#experienceInput").addClass("input-validation-error");
+                } else {
+                    $("#experienceInput").removeClass("input-validation-error");
+                }
+
+                // Validate Skills
+                var skills = $("#skillsInput").val().trim();
+                if (!skills) {
+                    isValid = false;
+                    $("#skillsInput").addClass("input-validation-error");
+                } else {
+                    $("#skillsInput").removeClass("input-validation-error");
+                }
+
+                // Validate Location
+                var loc = $("#locationInput").val().trim();
+                if (!loc) {
+                    isValid = false;
+                    $("#locationInput").addClass("input-validation-error");
+                } else {
+                    $("#locationInput").removeClass("input-validation-error");
+                }
+
+                // Validate Qualification
+                var qual = $("#qualificationInput").val().trim();
+                if (!qual) {
+                    isValid = false;
+                    $("#qualificationInput").addClass("input-validation-error");
+                } else {
+                    $("#qualificationInput").removeClass("input-validation-error");
+                }
+
+                // Validate Salary
+                var sal = $("#salaryInput").val();
+                if (!sal || isNaN(sal) || parseFloat(sal) <= 0) {
+                    isValid = false;
+                    $("#salaryInput").addClass("input-validation-error");
+                } else {
+                    $("#salaryInput").removeClass("input-validation-error");
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    // Scroll to the first error
+                    var firstError = $(".input-validation-error").first();
+                    if (firstError.length) {
+                        $('html, body').animate({
+                            scrollTop: firstError.offset().top - 100
+                        }, 300);
+                        firstError.focus();
+                    }
+                }
+            });
+
+            // Initial call to setup preview
+            updateLivePreview();
+        });
+    </script>
+}
