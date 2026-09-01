@@ -1,8 +1,427 @@
-﻿
 @{
-    ViewBag.Title = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    ViewBag.Title = "Recruiter Dashboard";
 }
 
-<h2>Company Dasboard</h2>
+@section styles {
+    <style>
+        /* Dashboard Banner */
+        .dash-hero {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 60%, #185adb 100%);
+            color: #ffffff;
+            padding: 32px 0 40px 0;
+            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.12);
+        }
 
+        .dash-hero h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .dash-hero p {
+            font-size: 14px;
+            color: #93c5fd;
+            margin: 0;
+        }
+
+        .btn-dash-post {
+            background: #ffffff;
+            color: #185adb !important;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .btn-dash-post:hover {
+            background: #f0fdf4;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Main Dashboard Content */
+        .dash-wrapper {
+            padding: 32px 0 60px 0;
+        }
+
+        /* KPI Metric Cards */
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .kpi-info h3 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 4px 0;
+        }
+
+        .kpi-info p {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .kpi-blue {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+
+        .kpi-emerald {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+
+        .kpi-amber {
+            background-color: #fffbeb;
+            color: #d97706;
+        }
+
+        .kpi-purple {
+            background-color: #faf5ff;
+            color: #7e22ce;
+        }
+
+        /* Section Panels */
+        .dash-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 26px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .dash-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dash-card-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dash-card-header h3 i {
+            color: #185adb;
+        }
+
+        /* Quick Action Tiles */
+        .action-tile {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            text-decoration: none !important;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .action-tile:hover {
+            background: #ffffff;
+            border-color: #bfdbfe;
+            box-shadow: 0 4px 16px rgba(24, 90, 219, 0.1);
+            transform: translateY(-2px);
+            color: #185adb;
+        }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            background: #eff6ff;
+            color: #185adb;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .action-tile h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
+
+        .action-tile p {
+            font-size: 12.5px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Empty State Box */
+        .empty-activity-box {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .empty-activity-box i {
+            font-size: 44px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .empty-activity-box h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #334155;
+            margin: 0 0 6px 0;
+        }
+
+        .empty-activity-box p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 16px 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Recruiter Tips Box */
+        .recruiter-tip-box {
+            background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 10px;
+        }
+
+        .recruiter-tip-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #14532d;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .recruiter-tip-box p {
+            font-size: 12.5px;
+            color: #166534;
+            margin: 0;
+            line-height: 1.45;
+        }
+    </style>
+}
+
+<!-- Dashboard Banner -->
+<div class="dash-hero">
+    <div class="container">
+        <div class="row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div class="col-sm-8">
+                <h1>Employer Recruitment Dashboard</h1>
+                <p>Manage your job postings, track applicant submissions, and streamline your hiring pipeline.</p>
+            </div>
+            <div class="col-sm-4 text-right">
+                <a href="@Url.Action("AddJobPosting", "Company")" class="btn-dash-post">
+                    <i class="fa-solid fa-circle-plus"></i> Post a New Job
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Container -->
+<div class="dash-wrapper">
+    <div class="container">
+
+        <!-- KPI Metrics Grid -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Active</h3>
+                        <p>Job Postings</p>
+                    </div>
+                    <div class="kpi-icon-box kpi-blue">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Verified</h3>
+                        <p>Company Profile</p>
+                    </div>
+                    <div class="kpi-icon-box kpi-emerald">
+                        <i class="fa-solid fa-building-circle-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>30 Days</h3>
+                        <p>Listing Window</p>
+                    </div>
+                    <div class="kpi-icon-box kpi-amber">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>2.5M+</h3>
+                        <p>Active Seekers</p>
+                    </div>
+                    <div class="kpi-icon-box kpi-purple">
+                        <i class="fa-solid fa-users-viewfinder"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Main Column: Quick Actions & Recent Postings -->
+            <div class="col-md-8">
+                
+                <!-- Quick Actions Grid -->
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6" style="margin-bottom: 16px;">
+                            <a href="@Url.Action("AddJobPosting", "Company")" class="action-tile">
+                                <div class="action-icon">
+                                    <i class="fa-solid fa-plus-circle"></i>
+                                </div>
+                                <div>
+                                    <h4>Post New Opening</h4>
+                                    <p>Publish an opening with required skills, experience, and compensation.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-sm-6" style="margin-bottom: 16px;">
+                            <a href="@Url.Action("Index", "Company")" class="action-tile">
+                                <div class="action-icon">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </div>
+                                <div>
+                                    <h4>Manage Posted Jobs</h4>
+                                    <p>Monitor your active requirements and applicant responses.</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity / Hiring Center -->
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <h3><i class="fa-solid fa-chart-line"></i> Hiring Overview</h3>
+                    </div>
+
+                    <div class="empty-activity-box">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <h4>Start by Posting Your First Job Opening</h4>
+                        <p>Reach qualified professionals and engineers instantly by publishing your job requirement.</p>
+                        <a href="@Url.Action("AddJobPosting", "Company")" class="btn btn-primary" style="background-color: #185adb; border-color: #185adb; font-weight: 600; padding: 8px 20px; border-radius: 6px;">
+                            <i class="fa-solid fa-paper-plane"></i> Post a Job Now
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Sidebar Column: Recruiter Tips & Platform Guidelines -->
+            <div class="col-md-4">
+                
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <h3><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> Hiring Pro-Tips</h3>
+                    </div>
+
+                    <div class="recruiter-tip-box">
+                        <h4><i class="fa-solid fa-wand-magic-sparkles"></i> AI Candidate Matching</h4>
+                        <p>Ensure you add specific skills and clear qualifications to boost AI recommendation accuracy by up to 60%.</p>
+                    </div>
+
+                    <div style="margin-top: 18px;">
+                        <h5 style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 10px;">Fast-Track Steps:</h5>
+                        <ul style="padding-left: 18px; font-size: 13px; color: #64748b; line-height: 1.6; margin: 0;">
+                            <li>Publish comprehensive job details.</li>
+                            <li>Review applicant profiles in your dashboard.</li>
+                            <li>Contact shortlisted candidates directly.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Recruiter Support Box -->
+                <div class="dash-card" style="background: #f8fafc;">
+                    <div class="dash-card-header">
+                        <h3><i class="fa-solid fa-headset"></i> Need Assistance?</h3>
+                    </div>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
+                        Our dedicated recruiter support team is here to assist with talent acquisition and posting queries.
+                    </p>
+                    <a href="mailto:recruiter-support@jobnest.com" class="btn btn-default btn-block" style="font-weight: 600; color: #185adb; border-color: #cbd5e1; background: #ffffff;">
+                        <i class="fa-solid fa-envelope"></i> Contact Recruiter Support
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
