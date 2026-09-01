@@ -8,7 +8,7 @@ using JobNest.Models;
 
 namespace JobNest.Controllers
 {
-    public class LoginController : Controller
+    public class AccountController : Controller
     {
         JobNestEntities db = new JobNestEntities();
 
@@ -30,13 +30,13 @@ namespace JobNest.Controllers
                 if (result != null)
                 {
                     Session["LoginId"] = result.LoginId;
-                    Session["LoginType"] = result.LoginType;
+                    Session["LoginType"] = result.LoginType.ToLower();
 
                     if (result.LoginType == "company")
                     {
                         return RedirectToAction("Index", "Company");
                     }
-                    else if (result.LoginType == "Employee")
+                    else if (result.LoginType == "employee")
                     {
                         return RedirectToAction("Index", "Employee");
                     }
