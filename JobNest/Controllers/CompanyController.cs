@@ -75,11 +75,7 @@ namespace JobNest.Controllers
         public ActionResult AddJobPosting(JobPosting model)
         {
             int LoginId = Convert.ToInt32(Session["LoginId"]);
-            var LoginType = Session["LoginType"];
-            if (LoginId > 0 || LoginType == null || LoginType.ToString().ToLower() != "company")
-            {
-                return RedirectToAction("Login", "Account");
-            }
+           
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -99,8 +95,9 @@ namespace JobNest.Controllers
             };
             db.JobPostings.Add(job);
             db.SaveChanges();
+            ModelState.Clear();
             TempData["msg"] = "Added Job Posting Succesfully";
-            return View(model);
+            return View();
         }
     }
 }
