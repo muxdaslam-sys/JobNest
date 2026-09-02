@@ -1,8 +1,1226 @@
-﻿
+
 @{
-    ViewBag.Title = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
+    ViewBag.Title = "Job Openings & Candidate Search | JobNest";
 }
 
-<h2>Employee Dasboard</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    @Styles.Render("~/Content/css")
+
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --primary-dark: #064e3b;
+            --primary-light: #ecfdf5;
+            --primary-border: #a7f3d0;
+            --emerald-glow: rgba(5, 150, 105, 0.15);
+            --dark-heading: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --bg-page: #f4f7f6;
+            --card-bg: #ffffff;
+            --border-subtle: #e2e8f0;
+            --badge-gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Candidate Navigation Bar */
+        .candidate-nav {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-subtle);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 18px;
+            box-shadow: 0 4px 10px var(--emerald-glow);
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text span {
+            color: var(--primary);
+        }
+
+        .candidate-tag {
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            padding: 6px 0;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-profile-badge {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark-heading);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-profile-badge:hover, .btn-profile-badge:focus {
+            border-color: var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+            outline: none;
+        }
+
+        .candidate-dropdown-menu {
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 8px 0;
+            min-width: 210px;
+            margin-top: 8px;
+        }
+
+        .candidate-dropdown-menu li a {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .candidate-dropdown-menu li a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .candidate-dropdown-menu .dropdown-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 6px 16px;
+        }
+
+        .btn-view-job-details {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view-job-details:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--emerald-glow);
+        }
+
+        .btn-apply-naukri {
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 22px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--emerald-glow);
+        }
+
+        .btn-apply-naukri:hover {
+            background: var(--primary-hover);
+            color: #ffffff;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .avatar-circle {
+            width: 26px;
+            height: 26px;
+            background: var(--primary);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* Hero Search Section (Naukri Style) */
+        .hero-search-section {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+            color: #ffffff;
+            padding: 40px 0 46px 0;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(6, 78, 59, 0.15);
+        }
+
+        .hero-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            color: #a7f3d0;
+            margin: 0 0 24px 0;
+        }
+
+        /* Search Bar Component */
+        .naukri-search-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .search-field:last-of-type {
+            border-right: none;
+        }
+
+        .search-field i {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .search-field input, .search-field select {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: var(--dark-heading);
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .search-field input::placeholder {
+            color: #94a3b8;
+        }
+
+        .btn-naukri-search {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--emerald-glow);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-naukri-search:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        /* Trending Search Tags */
+        .trending-tags-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #d1fae5;
+        }
+
+        .tag-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .tag-pill:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        /* Main Workspace Section */
+        .main-workspace {
+            padding: 30px 0 60px 0;
+            flex: 1;
+        }
+
+        /* Left Sidebar: Filter Cards */
+        .filter-sidebar-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+        }
+
+        .filter-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 18px;
+        }
+
+        .filter-header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-header-title i {
+            color: var(--primary);
+        }
+
+        .btn-clear-filters {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-clear-filters:hover {
+            text-decoration: underline;
+        }
+
+        .filter-group {
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .filter-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .filter-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .filter-option-item:hover {
+            color: var(--dark-heading);
+        }
+
+        .filter-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        .filter-checkbox-label input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        .filter-count {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Right Feed Column */
+        .feed-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .results-count-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+
+        .results-count-text strong {
+            color: var(--dark-heading);
+        }
+
+        .sort-dropdown-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .sort-select {
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: var(--dark-heading);
+            background: #ffffff;
+            font-weight: 600;
+            outline: none;
+        }
+
+        /* Naukri Style Job Card Component */
+        .naukri-job-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            padding: 22px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .naukri-job-card:hover {
+            border-color: var(--primary-border);
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .job-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .job-card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            margin: 0 0 4px 0;
+            text-decoration: none;
+            display: inline-block;
+            transition: color 0.15s;
+        }
+
+        .job-card-title:hover {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .job-company-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .company-rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .company-rating-badge i {
+            color: #f59e0b;
+            font-size: 10px;
+        }
+
+        .btn-bookmark-job {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #94a3b8;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-bookmark-job:hover {
+            background: #f1f5f9;
+            color: #e11d48;
+        }
+
+        /* Metadata Pill Row */
+        .job-meta-grid {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 14px;
+            background-color: #f8fafc;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .meta-grid-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .meta-grid-item i {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .meta-salary-highlight {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .job-description-snippet {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Skill Tags Row */
+        .job-skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .skill-tag-pill {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        /* Card Action Footer */
+        .job-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            color: #94a3b8;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .post-time-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-apply-naukri {
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 22px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--emerald-glow);
+        }
+
+        .btn-apply-naukri:hover {
+            background: var(--primary-hover);
+            color: #ffffff;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* Pagination Styling */
+        .pagination-wrapper {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .page-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+
+        /* Candidate Footer */
+        .candidate-footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 30px 0;
+            font-size: 13px;
+            border-top: 3px solid var(--primary);
+        }
+
+        .candidate-footer a {
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        .candidate-footer a:hover {
+            color: #34d399;
+        }
+
+        @@media (max-width: 767px) {
+            .naukri-search-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-field {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .btn-naukri-search {
+                width: 100%;
+                justify-content: center;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Candidate Top Navigation Bar -->
+    <header class="candidate-nav">
+        <div class="container">
+            <div class="nav-container">
+                
+                <!-- Logo -->
+                <a href="@Url.Action("Index", "Employee")" class="brand-logo-wrapper">
+                    <div class="brand-icon-box">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div class="brand-text">Job<span>Nest</span></div>
+                    <span class="candidate-tag">Candidate Hub</span>
+                </a>
+
+                <!-- Navigation Links -->
+                <ul class="nav-links">
+                    <li><a href="@Url.Action("Index", "Employee")" class="active">Browse Jobs</a></li>
+                    <li><a href="#">Top Companies</a></li>
+                    <li><a href="#">Career Advice</a></li>
+                    <li><a href="#">My Applications</a></li>
+                </ul>
+
+                <!-- Profile & Logout Dropdown -->
+                <div class="nav-actions">
+                    <div class="dropdown">
+                        <button class="btn-profile-badge dropdown-toggle" type="button" id="candidateMenuDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="avatar-circle">
+                                @(Session["Username"] != null && Session["Username"].ToString().Length > 0 ? Session["Username"].ToString().Substring(0, 1).ToUpper() : "C")
+                            </div>
+                            <span>@(Session["Username"] != null ? Session["Username"].ToString() : "Candidate Account")</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #94a3b8; margin-left: 2px;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right candidate-dropdown-menu" aria-labelledby="candidateMenuDropdown">
+                            <li class="dropdown-header">Candidate Profile</li>
+                            <li>
+                                <a href="#">
+                                    <i class="fa-solid fa-user-circle" style="color: var(--primary);"></i> My Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <i class="fa-solid fa-paper-plane" style="color: #6366f1;"></i> My Applications
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <i class="fa-solid fa-bookmark" style="color: #f59e0b;"></i> Saved Jobs
+                                </a>
+                            </li>
+                            <li role="separator" class="divider"></li>
+                            <li>
+                                <a href="@Url.Action("Login", "Account")" style="color: #ef4444;">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Search Bar Section (Green Naukri Theme) -->
+    <section class="hero-search-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1 text-center">
+                    <h1 class="hero-title">Find your dream job now</h1>
+                    <p class="hero-subtitle">50,000+ verified active opportunities from India's top employers</p>
+
+                    <!-- Search Bar -->
+                    <div class="naukri-search-box">
+                        <div class="search-field">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Enter skills / designations / companies" />
+                        </div>
+                        <div class="search-field" style="max-width: 220px;">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <select>
+                                <option value="">Select Experience</option>
+                                <option value="0">Fresher (0 Years)</option>
+                                <option value="1">1 Year</option>
+                                <option value="2">2 Years</option>
+                                <option value="3">3 Years</option>
+                                <option value="5">5+ Years</option>
+                                <option value="8">8+ Years</option>
+                            </select>
+                        </div>
+                        <div class="search-field">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" placeholder="Enter location (e.g. Bangalore)" />
+                        </div>
+                        <button type="button" class="btn-naukri-search">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search Jobs
+                        </button>
+                    </div>
+
+                    <!-- Trending Search Tags -->
+                    <div class="trending-tags-row" style="justify-content: center;">
+                        <span><i class="fa-solid fa-arrow-trend-up" style="color: #6ee7b7;"></i> Trending Searches:</span>
+                        <a href="#" class="tag-pill">Remote Jobs</a>
+                        <a href="#" class="tag-pill">.NET Full Stack</a>
+                        <a href="#" class="tag-pill">QA Automation</a>
+                        <a href="#" class="tag-pill">Data Analyst</a>
+                        <a href="#" class="tag-pill">React Developer</a>
+                        <a href="#" class="tag-pill">Fresher Openings</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Workspace: Left Filters + Right Job Cards Feed -->
+    <main class="main-workspace">
+        <div class="container">
+            <div class="row">
+                
+                <!-- Left Sidebar: Filters & Refine (Col-md-3) -->
+                <aside class="col-md-3">
+                    <div class="filter-sidebar-card">
+                        
+                        <div class="filter-header-bar">
+                            <h3 class="filter-header-title">
+                                <i class="fa-solid fa-sliders"></i> All Filters
+                            </h3>
+                            <a href="#" class="btn-clear-filters">Clear All</a>
+                        </div>
+
+                        <!-- Filter: Work Mode -->
+                        <div class="filter-group">
+                            <div class="filter-title">Work Mode</div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" checked /> Remote
+                                </label>
+                                <span class="filter-count">48</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Hybrid
+                                </label>
+                                <span class="filter-count">112</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Work from Office
+                                </label>
+                                <span class="filter-count">180</span>
+                            </div>
+                        </div>
+
+                        <!-- Filter: Experience Required -->
+                        <div class="filter-group">
+                            <div class="filter-title">Experience (Years)</div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 0 - 1 Yrs (Freshers)
+                                </label>
+                                <span class="filter-count">64</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" checked /> 2 - 4 Yrs
+                                </label>
+                                <span class="filter-count">142</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 5 - 7 Yrs
+                                </label>
+                                <span class="filter-count">88</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 8+ Yrs (Senior)
+                                </label>
+                                <span class="filter-count">46</span>
+                            </div>
+                        </div>
+
+                        <!-- Filter: Salary (LPA) -->
+                        <div class="filter-group">
+                            <div class="filter-title">Salary (Annual CTC)</div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 0 - 3 Lakhs
+                                </label>
+                                <span class="filter-count">52</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 3 - 6 Lakhs
+                                </label>
+                                <span class="filter-count">110</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" checked /> 6 - 10 Lakhs
+                                </label>
+                                <span class="filter-count">94</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 10 - 15 Lakhs
+                                </label>
+                                <span class="filter-count">60</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> 15+ Lakhs
+                                </label>
+                                <span class="filter-count">24</span>
+                            </div>
+                        </div>
+
+                        <!-- Filter: Location / City -->
+                        <div class="filter-group">
+                            <div class="filter-title">Location / City</div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Bangalore / Bengaluru
+                                </label>
+                                <span class="filter-count">180</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Hyderabad
+                                </label>
+                                <span class="filter-count">115</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Pune
+                                </label>
+                                <span class="filter-count">98</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Mumbai / Navi Mumbai
+                                </label>
+                                <span class="filter-count">82</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Delhi / NCR
+                                </label>
+                                <span class="filter-count">90</span>
+                            </div>
+                        </div>
+
+                        <!-- Filter: Qualification -->
+                        <div class="filter-group">
+                            <div class="filter-title">Education</div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> B.Tech / B.E
+                                </label>
+                                <span class="filter-count">210</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> MCA / BCA
+                                </label>
+                                <span class="filter-count">124</span>
+                            </div>
+                            <div class="filter-option-item">
+                                <label class="filter-checkbox-label">
+                                    <input type="checkbox" /> Any Graduate
+                                </label>
+                                <span class="filter-count">90</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+
+                <!-- Right Main Column: Job Feed (Col-md-9) -->
+                <section class="col-md-9">
+                    
+                    @{
+                        var jobs = ViewBag.Jobs as IEnumerable<JobNest.JobPosting>;
+                        int jobCount = jobs != null ? jobs.Count() : 0;
+                    }
+
+                    <!-- Feed Header Row -->
+                    <div class="feed-header-bar">
+                        <p class="results-count-text">Showing <strong>@jobCount</strong> Available Job@(jobCount == 1 ? "" : "s")</p>
+                        <div class="sort-dropdown-box">
+                            <span>Sort by:</span>
+                            <select class="sort-select">
+                                <option value="relevance">Relevance</option>
+                                <option value="date">Date Posted</option>
+                                <option value="salary">Salary (High to Low)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    @if (jobs != null && jobs.Any())
+                    {
+                        foreach (var job in jobs)
+                        {
+                            var skillList = (job.RequiredSkills ?? "").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                            var daysAgo = (DateTime.Now - job.PostDate).Days;
+                            string postTimeStr = daysAgo == 0 ? "Posted today" : (daysAgo == 1 ? "Posted 1 day ago" : "Posted " + daysAgo + " days ago");
+                            string salaryDisplay = (job.Salary >= 100000) ? (job.Salary / 100000).ToString("0.##") + " LPA" : "₹ " + job.Salary.ToString("N0") + " PA";
+                            string expDisplay = job.ExperienceRequired == 0 ? "0 Yrs (Fresher)" : job.ExperienceRequired + "+ Yrs Exp";
+
+                            <div class="naukri-job-card">
+                                <div class="job-card-top">
+                                    <div>
+                                        <a href="@Url.Action("JobDetails", "Employee", new { id = job.JobId })" class="job-card-title">@job.JobTitle</a>
+                                        <div class="job-company-row">
+                                            <i class="fa-solid fa-building" style="color: #94a3b8; margin-right: 2px;"></i>
+                                            <span>Verified Recruiter</span>
+                                            <span class="company-rating-badge"><i class="fa-solid fa-star"></i> 4.2</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-bookmark-job" title="Save Job">
+                                        <i class="fa-regular fa-bookmark"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Meta Pill Strip -->
+                                <div class="job-meta-grid">
+                                    <div class="meta-grid-item">
+                                        <i class="fa-solid fa-briefcase"></i> <span>@expDisplay</span>
+                                    </div>
+                                    <div class="meta-grid-item">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i> <span class="meta-salary-highlight">@salaryDisplay</span>
+                                    </div>
+                                    <div class="meta-grid-item">
+                                        <i class="fa-solid fa-location-dot"></i> <span>@(string.IsNullOrWhiteSpace(job.JobLocation) ? "Not Specified" : job.JobLocation)</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(job.RequiredQualification))
+                                    {
+                                        <div class="meta-grid-item">
+                                            <i class="fa-solid fa-graduation-cap"></i> <span>@job.RequiredQualification</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="job-description-snippet">
+                                    Opportunity for <strong>@job.JobTitle</strong> requiring minimum <strong>@expDisplay</strong> and qualification in <strong>@(job.RequiredQualification ?? "relevant degree")</strong>. Key competencies: @(job.RequiredSkills ?? "Industry standard skills").
+                                </div>
+
+                                <!-- Skill Tags -->
+                                <div class="job-skills-container">
+                                    @if (skillList.Length > 0)
+                                    {
+                                        foreach (var s in skillList)
+                                        {
+                                            <span class="skill-tag-pill">@s.Trim()</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="skill-tag-pill">@(job.JobTitle)</span>
+                                    }
+                                </div>
+
+                                <!-- Card Footer -->
+                                <div class="job-card-footer">
+                                    <div class="post-time-info">
+                                        <i class="fa-regular fa-clock"></i> @postTimeStr &bull; <span style="color: #059669; font-weight: 600;"><i class="fa-solid fa-bolt"></i> Actively Hiring</span>
+                                    </div>
+                                    <a href="@Url.Action("JobDetails", "Employee", new { id = job.JobId })" class="btn-view-job-details">
+                                        View Details <i class="fa-solid fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Pagination -->
+                        <div class="pagination-wrapper">
+                            <a href="#" class="page-btn"><i class="fa-solid fa-angle-left"></i> Prev</a>
+                            <a href="#" class="page-btn active">1</a>
+                            <a href="#" class="page-btn">Next <i class="fa-solid fa-angle-right"></i></a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Empty State -->
+                        <div class="naukri-job-card text-center" style="padding: 50px 20px; text-align: center;">
+                            <div style="width: 70px; height: 70px; background: #ecfdf5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #059669; font-size: 30px; margin-bottom: 16px;">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">No Active Jobs Found</h3>
+                            <p style="font-size: 14px; color: #64748b; margin: 0 auto 20px auto; max-width: 420px;">
+                                There are currently no job openings matching the current criteria. Please check back soon or explore our trending searches!
+                            </p>
+                        </div>
+                    }
+
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Candidate Footer -->
+    <footer class="candidate-footer">
+        <div class="container text-center">
+            <p style="margin-bottom: 8px;">&copy; @DateTime.Now.Year JobNest Portal - Candidate &amp; Career Hub. All rights reserved.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">
+                <a href="#">Privacy Policy</a> &bull; 
+                <a href="#">Terms of Service</a> &bull; 
+                <a href="#">Trust &amp; Safety</a> &bull; 
+                <a href="#">Candidate Support</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Scripts for Dropdown Functionality -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+</body>
+</html>
 
