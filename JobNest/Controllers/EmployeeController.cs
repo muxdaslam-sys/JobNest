@@ -13,9 +13,36 @@ namespace JobNest.Controllers
     {
         JobNestEntities db = new JobNestEntities();
 
-        // GET: Employee
+        // GET: Employee Index with active jobs
         public ActionResult Index()
         {
+            var LoginId = Session["LoginId"];
+            var LoginType = Session["LoginType"];
+            if (LoginId == null || LoginType == null || LoginType.ToString().ToLower() != "employee")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.Jobs = (from job in db.JobPostings
+                            join company in db.Companies
+                            on job.CompanyId equals company.CompanyId
+                            where job.JobStatus == "Active"
+                               && job.EndDate >= DateTime.Now
+                            select new
+                            {
+                                job.CompanyId,
+                                company.CompanyName,
+                                job.JobTitle,
+                                job.ExperienceRequired,
+                                job.RequiredSkills,
+                                job.JobLocation,
+                                job.RequiredQualification,
+                                job.Salary,
+                                job.PostDate,
+                                job.EndDate,
+                                job.JobStatus
+                            }).ToList();
+
             return View();
         }
 
