@@ -32,11 +32,11 @@ namespace JobNest.Controllers
                     Session["LoginId"] = result.LoginId;
                     Session["LoginType"] = result.LoginType.ToLower();
 
-                    if (result.LoginType == "company")
+                    if (result.LoginType.ToLower() == "company")
                     {
                         return RedirectToAction("Index", "Company");
                     }
-                    else if (result.LoginType == "employee")
+                    else if (result.LoginType.ToLower() == "employee")
                     {
                         return RedirectToAction("Index", "Employee");
                     }
