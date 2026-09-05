@@ -7,6 +7,7 @@ using JobNest.Models;
 
 namespace JobNest.Controllers
 {
+    [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
     public class CompanyController : Controller
     {
         JobNestEntities db = new JobNestEntities();
