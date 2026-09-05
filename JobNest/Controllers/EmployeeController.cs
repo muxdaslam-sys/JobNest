@@ -9,12 +9,13 @@ using JobNest.Models;
 
 namespace JobNest.Controllers
 {
+    [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
     public class EmployeeController : Controller
     {
         JobNestEntities db = new JobNestEntities();
 
-        // GET: Employee Index with active jobs
-        public ActionResult Index()
+        // GET: Employee Index with active jobs and search
+        public ActionResult Index(string searchJobTitle, int? searchExperience, string searchLocation)
         {
             var LoginId = Session["LoginId"];
             var LoginType = Session["LoginType"];
@@ -23,25 +24,46 @@ namespace JobNest.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            ViewBag.Jobs = (from job in db.JobPostings
-                            join company in db.Companies
-                            on job.CompanyId equals company.CompanyId
-                            where job.JobStatus == "Active"
-                               && job.EndDate >= DateTime.Now
-                            select new
-                            {
-                                job.CompanyId,
-                                company.CompanyName,
-                                job.JobTitle,
-                                job.ExperienceRequired,
-                                job.RequiredSkills,
-                                job.JobLocation,
-                                job.RequiredQualification,
-                                job.Salary,
-                                job.PostDate,
-                                job.EndDate,
-                                job.JobStatus
-                            }).ToList();
+            var query = from job in db.JobPostings
+                        join login in db.UserLogins on job.CompanyId equals login.LoginId
+                        join company in db.Companies on login.RegistrationId equals company.CompanyId
+                        where job.JobStatus == "Active" && job.EndDate >= DateTime.Now
+                        select new JobPostingView
+                        {
+                            JobId = job.JobId,
+                            CompanyId = login.LoginId,
+                            CompanyName = company.CompanyName,
+                            JobTitle = job.JobTitle,
+                            ExperienceRequired = job.ExperienceRequired,
+                            RequiredSkills = job.RequiredSkills,
+                            JobLocation = job.JobLocation,
+                            RequiredQualification = job.RequiredQualification,
+                            Salary = job.Salary,
+                            PostDate = job.PostDate,
+                            EndDate = job.EndDate,
+                            JobStatus = job.JobStatus
+                        };
+
+            if (!string.IsNullOrWhiteSpace(searchJobTitle))
+            {
+                query = query.Where(x => x.JobTitle.Contains(searchJobTitle) || x.RequiredSkills.Contains(searchJobTitle));
+            }
+
+            if (searchExperience.HasValue)
+            {
+                query = query.Where(x => x.ExperienceRequired <= searchExperience.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchLocation))
+            {
+                query = query.Where(x => x.JobLocation.Contains(searchLocation));
+            }
+
+            ViewBag.SearchJobTitle = searchJobTitle;
+            ViewBag.SearchExperience = searchExperience;
+            ViewBag.SearchLocation = searchLocation;
+
+            ViewBag.Jobs = query.ToList();
 
             return View();
         }
