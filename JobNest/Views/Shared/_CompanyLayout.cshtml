@@ -557,7 +557,7 @@
 
                             <div class="dropdown-divider"></div>
 
-                            <a href="@Url.Action("Login", "Account")" class="dropdown-menu-item dropdown-item-logout">
+                            <a href="@Url.Action("Logout", "Account")" class="dropdown-menu-item dropdown-item-logout">
                                 <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                             </a>
                         </div>
@@ -634,5 +634,14 @@
     </script>
 
     @RenderSection("scripts", required: false)
+
+    <script type="text/javascript">
+        // Prevent back-button viewing of cached authenticated pages after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 </html>
