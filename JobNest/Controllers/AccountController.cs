@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -31,6 +31,7 @@ namespace JobNest.Controllers
                 {
                     Session["LoginId"] = result.LoginId;
                     Session["LoginType"] = result.LoginType.ToLower();
+                    Session["Username"] = cls.Username;
 
                     if (result.LoginType.ToLower() == "company")
                     {
@@ -49,5 +50,12 @@ namespace JobNest.Controllers
             return View();
         }
 
+        // GET: Logout
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            return RedirectToAction("Login", "Account");
+        }
     }
 }
