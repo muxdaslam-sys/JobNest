@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - JobNest Candidate Hub</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Bootstrap CSS -->
+    @Styles.Render("~/Content/css")
+
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --primary-dark: #064e3b;
+            --primary-light: #ecfdf5;
+            --primary-border: #a7f3d0;
+            --emerald-glow: rgba(5, 150, 105, 0.15);
+            --dark-heading: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+            --card-bg: #ffffff;
+            --border-subtle: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation Bar */
+        .candidate-nav {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 18px;
+            box-shadow: 0 4px 10px var(--emerald-glow);
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text span {
+            color: var(--primary);
+        }
+
+        .candidate-tag {
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .nav-center-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-center-links a {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+            position: relative;
+            padding: 6px 0;
+        }
+
+        .nav-center-links a:hover, .nav-center-links a.active {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-profile-badge {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark-heading);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-profile-badge:hover {
+            border-color: var(--primary-border);
+            color: var(--primary);
+        }
+
+        .avatar-circle {
+            width: 26px;
+            height: 26px;
+            background: var(--primary);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .candidate-dropdown-menu {
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 8px 0;
+            min-width: 200px;
+            margin-top: 8px;
+        }
+
+        .candidate-dropdown-menu li a {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .candidate-dropdown-menu li a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .candidate-main-content {
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Footer */
+        .candidate-footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 26px 0;
+            font-size: 13px;
+            border-top: 3px solid var(--primary);
+            margin-top: auto;
+        }
+
+        .candidate-footer a {
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        .candidate-footer a:hover {
+            color: #34d399;
+        }
+
+        @@media (max-width: 767px) {
+            .nav-center-links {
+                display: none;
+            }
+        }
+    </style>
+
+    @RenderSection("styles", required: false)
+</head>
+<body>
+
+    <!-- Top Candidate Navigation Bar -->
+    <header class="candidate-nav">
+        <div class="container">
+            <div class="nav-container">
+                <a href="@Url.Action("Index", "Employee")" class="brand-logo-wrapper">
+                    <div class="brand-icon-box">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div class="brand-text">Job<span>Nest</span></div>
+                    <span class="candidate-tag">Candidate Hub</span>
+                </a>
+
+                <ul class="nav-center-links">
+                    <li><a href="@Url.Action("Index", "Employee")" class="active">Browse Jobs</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <div class="dropdown">
+                        <button class="btn-profile-badge dropdown-toggle" type="button" id="candidateMenuDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="avatar-circle">
+                                @(Session["Username"] != null && Session["Username"].ToString().Length > 0 ? Session["Username"].ToString().Substring(0, 1).ToUpper() : "C")
+                            </div>
+                            <span>@(Session["Username"] != null ? Session["Username"].ToString() : "Candidate")</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #94a3b8; margin-left: 2px;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right candidate-dropdown-menu" aria-labelledby="candidateMenuDropdown">
+                            <li class="dropdown-header" style="font-size: 11px; text-transform: uppercase; color: #94a3b8; padding: 6px 16px;">Candidate Profile</li>
+                            <li>
+                                <a href="@Url.Action("Index", "Employee")">
+                                    <i class="fa-solid fa-briefcase" style="color: var(--primary);"></i> Browse Jobs
+                                </a>
+                            </li>
+                            <li role="separator" class="divider" style="margin: 6px 0;"></li>
+                            <li>
+                                <a href="@Url.Action("Logout", "Account")" style="color: #ef4444;">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content -->
+    <main class="candidate-main-content">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="candidate-footer">
+        <div class="container text-center">
+            <p style="margin-bottom: 6px;">&copy; @DateTime.Now.Year JobNest Portal. All rights reserved.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">Candidate &amp; Career Hub</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <!-- Prevent back-button viewing after logout -->
+    <script type="text/javascript">
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>
