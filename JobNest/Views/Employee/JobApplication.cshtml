@@ -1,0 +1,552 @@
+@model JobNest.Models.JobApplicationView
+@{
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+    ViewBag.Title = "Apply for " + (Model != null && !string.IsNullOrWhiteSpace(Model.JobTitle) ? Model.JobTitle : "Job");
+    decimal salary = Model != null ? Model.Salary : 0;
+    string salaryDisplay = salary >= 100000 
+        ? (salary / 100000).ToString("0.##") + " LPA" 
+        : "₹ " + salary.ToString("N0") + " PA";
+    string expDisplay = Model != null 
+        ? (Model.ExperienceRequired == 0 ? "Fresher (0 Yrs)" : Model.ExperienceRequired + "+ Yrs Exp")
+        : "Not Specified";
+}
+
+@section styles {
+    <style>
+        .apply-page-wrapper {
+            padding: 40px 0 60px 0;
+            flex: 1;
+        }
+
+        .apply-container-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* Top Header Strip */
+        .apply-card-header {
+            padding: 26px 32px 22px 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .btn-back-jobs {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 14px;
+            transition: color 0.2s;
+        }
+
+        .btn-back-jobs:hover {
+            color: #059669;
+            text-decoration: none;
+        }
+
+        .apply-page-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .apply-page-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Job Position Preview Card */
+        .job-summary-preview {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 24px 32px 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .job-summary-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .job-summary-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .job-summary-role {
+            font-size: 16px;
+            font-weight: 700;
+            color: #064e3b;
+            margin: 0 0 3px 0;
+        }
+
+        .job-summary-company {
+            font-size: 13px;
+            color: #047857;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .job-summary-meta-pills {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .job-meta-tag {
+            background: #ffffff;
+            border: 1px solid #d1fae5;
+            color: #065f46;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Form Body */
+        .apply-form-body {
+            padding: 28px 32px 32px 32px;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .upload-dropzone:hover, .upload-dropzone.dragover {
+            border-color: #059669;
+            background-color: #f0fdf4;
+        }
+
+        .upload-dropzone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .upload-icon-circle {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+            pointer-events: none;
+        }
+
+        .upload-dropzone:hover .upload-icon-circle {
+            transform: translateY(-2px);
+        }
+
+        .upload-instruction {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 6px 0;
+            pointer-events: none;
+        }
+
+        .upload-instruction span {
+            color: #059669;
+            text-decoration: underline;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0 0 14px 0;
+            pointer-events: none;
+        }
+
+        .upload-browse-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ffffff;
+            color: #059669;
+            border: 1.5px solid #059669;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 18px;
+            border-radius: 6px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+
+        .upload-dropzone:hover .upload-browse-btn {
+            background-color: #059669;
+            color: #ffffff;
+        }
+
+        .selected-file-display {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: space-between;
+            color: #064e3b;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .selected-file-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Form Buttons */
+        .form-actions-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-cancel-apply {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 11px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel-apply:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            text-decoration: none;
+        }
+
+        .btn-submit-apply {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 11px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-submit-apply:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Responsive */
+        @@media (max-width: 767px) {
+            .apply-card-header, .apply-form-body {
+                padding: 20px;
+            }
+            .job-summary-preview {
+                margin: 16px 20px 0 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .form-actions-group {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            .btn-cancel-apply, .btn-submit-apply {
+                width: 100%;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+}
+
+<div class="apply-page-wrapper">
+    <div class="container">
+        <div class="apply-container-card">
+
+            <!-- Card Header -->
+            <div class="apply-card-header">
+                <a href="@Url.Action("Index", "Employee")" class="btn-back-jobs">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Job Opportunities
+                </a>
+                <h1 class="apply-page-title">Submit Job Application</h1>
+                <p class="apply-page-subtitle">Upload your updated resume to apply for this opening</p>
+            </div>
+
+            <!-- Job Position Summary Banner -->
+            <div class="job-summary-preview">
+                <div class="job-summary-left">
+                    <div class="job-summary-avatar">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <h3 class="job-summary-role">@Model.JobTitle</h3>
+                        <div class="job-summary-company">
+                            <i class="fa-solid fa-building"></i>
+                            <span>@(string.IsNullOrWhiteSpace(Model.CompanyName) ? "Verified Employer" : Model.CompanyName)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="job-summary-meta-pills">
+                    <span class="job-meta-tag">
+                        <i class="fa-solid fa-location-dot"></i> @(string.IsNullOrWhiteSpace(Model.JobLocation) ? "Not Specified" : Model.JobLocation)
+                    </span>
+                    <span class="job-meta-tag">
+                        <i class="fa-solid fa-indian-rupee-sign"></i> @salaryDisplay
+                    </span>
+                    <span class="job-meta-tag">
+                        <i class="fa-solid fa-user-clock"></i> @expDisplay
+                    </span>
+                </div>
+            </div>
+
+            @if (Model != null && Model.AlreadyApplied)
+            {
+                <!-- Already Applied Status Card -->
+                <div class="apply-form-body" style="text-align: center; padding: 44px 32px;">
+                    <div style="width: 68px; height: 68px; border-radius: 50%; background: #ecfdf5; border: 2px solid #a7f3d0; color: #059669; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h2 style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">
+                        Application Already Submitted
+                    </h2>
+                    <p style="color: #64748b; font-size: 14px; margin: 0 auto 24px auto; max-width: 440px; line-height: 1.6;">
+                        You have already applied for this opening. Your resume is safely on file and under review by the hiring team.
+                    </p>
+
+                    <!-- Application Info Strip -->
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 22px; max-width: 460px; margin: 0 auto 30px auto; text-align: left; display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span style="color: #64748b; font-weight: 600;">Date Applied:</span>
+                            <span style="color: #0f172a; font-weight: 700;">
+                                @(Model.ApplicationDate != null ? Model.ApplicationDate.Value.ToString("dd MMM yyyy, hh:mm tt") : "Recently")
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span style="color: #64748b; font-weight: 600;">Application Status:</span>
+                            <span style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-weight: 700; font-size: 12px; padding: 3px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-circle-check"></i> @(Model.ApplicationStatus ?? "Applied")
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.ResumePath))
+                        {
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                                <span style="color: #64748b; font-weight: 600;">Uploaded Resume:</span>
+                                <a href="@Url.Content(Model.ResumePath)" target="_blank" style="color: #059669; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-file-arrow-down"></i> Download Resume
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Action Link -->
+                    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <a href="@Url.Action("Index", "Employee")" class="btn-submit-apply" style="text-decoration: none; padding: 12px 32px;">
+                            <i class="fa-solid fa-arrow-left"></i> Browse Other Job Openings
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Application Form -->
+                <div class="apply-form-body">
+                    @using (Html.BeginForm("JobApplication", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", id = "applyJobForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <!-- Crucial Hidden Field: sends JobId to HttpPost -->
+                        @Html.HiddenFor(m => m.JobId)
+
+                        <!-- Validation Summary -->
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger", style = "margin-bottom: 16px; font-weight: 600; font-size: 13px;" })
+
+                        <!-- Upload Zone -->
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 14px;">
+                                Resume / CV Document <span style="color: #ef4444;">*</span>
+                            </label>
+
+                            <div class="upload-dropzone" id="dropzoneArea">
+                                <input type="file" name="ResumeFile" id="resumeFileInput" accept=".pdf,.doc,.docx" required onchange="handleFileSelected(this)" />
+                                
+                                <div class="upload-icon-circle">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <div class="upload-instruction">
+                                    <span>Click to browse</span> or drag and drop your file here
+                                </div>
+                                <p class="upload-hint">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
+                                <div>
+                                    <span class="upload-browse-btn">
+                                        <i class="fa-solid fa-folder-open"></i> Browse File
+                                    </span>
+                                </div>
+                            </div>
+
+                        <!-- Selected File Preview -->
+                        <div class="selected-file-display" id="selectedFileContainer">
+                            <div class="selected-file-name">
+                                <i class="fa-solid fa-file-lines" style="color: #059669; font-size: 16px;"></i>
+                                <span id="selectedFileNameText">filename.pdf</span>
+                                <span id="selectedFileSizeText" style="color: #64748b; font-weight: 400; font-size: 12px;">(0 KB)</span>
+                            </div>
+                            <button type="button" onclick="clearSelectedFile()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;" title="Remove File">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        @Html.ValidationMessageFor(m => m.ResumeFile, "", new { @class = "text-danger", style = "display: block; margin-top: 6px; font-weight: 600; font-size: 13px;" })
+                    </div>
+
+                    <!-- Application Notice -->
+                    <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-top: 18px; font-size: 12px; color: #64748b; display: flex; align-items: flex-start; gap: 10px;">
+                        <i class="fa-solid fa-circle-info" style="color: #059669; font-size: 14px; margin-top: 2px;"></i>
+                        <span>By submitting, your profile details and uploaded resume will be made accessible to the hiring manager for review.</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions-group">
+                        <a href="@Url.Action("Index", "Employee")" class="btn-cancel-apply">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-submit-apply" id="btnSubmitForm">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Application
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        function handleFileSelected(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var name = file.name;
+                var sizeKB = (file.size / 1024).toFixed(1);
+                var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                var sizeDisplay = file.size > 1024 * 1024 ? '(' + sizeMB + ' MB)' : '(' + sizeKB + ' KB)';
+
+                $('#selectedFileNameText').text(name);
+                $('#selectedFileSizeText').text(sizeDisplay);
+                $('#selectedFileContainer').css('display', 'flex');
+            }
+        }
+
+        function clearSelectedFile() {
+            var input = document.getElementById('resumeFileInput');
+            if (input) {
+                input.value = '';
+            }
+            $('#selectedFileContainer').hide();
+        }
+
+        // Handle drag and drop visual state and file selection
+        var dropzone = document.getElementById('dropzoneArea');
+        var fileInput = document.getElementById('resumeFileInput');
+
+        if (dropzone && fileInput) {
+            ['dragenter', 'dragover'].forEach(function (eventName) {
+                dropzone.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave'].forEach(function (eventName) {
+                dropzone.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelected(fileInput);
+                }
+            }, false);
+        }
+    </script>
+}
