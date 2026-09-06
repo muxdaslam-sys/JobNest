@@ -3,6 +3,7 @@
     Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
     ViewBag.Title = "Explore Career Opportunities";
     var jobs = (ViewBag.Jobs as IEnumerable<JobNest.Models.JobPostingView>) ?? Model;
+    var appliedJobIds = (ViewBag.AppliedJobIds as List<int>) ?? new List<int>();
     int jobCount = jobs != null ? jobs.Count() : 0;
     bool hasSearch = !string.IsNullOrWhiteSpace(ViewBag.SearchJobTitle as string) ||
                      ViewBag.SearchExperience != null ||
@@ -320,11 +321,320 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
+            cursor: pointer;
         }
 
         .btn-view-details:hover {
             background-color: var(--primary);
             color: #ffffff;
+            text-decoration: none;
+        }
+
+        .badge-card-applied {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal Container & Animation Styling */
+        .job-details-modal-wrapper .modal-dialog {
+            max-width: 760px;
+            margin: 40px auto;
+        }
+
+        .job-modal-content-container {
+            border-radius: 16px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            background: #ffffff;
+        }
+
+        .job-modal-header {
+            padding: 22px 26px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .job-modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .job-modal-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #a7f3d0;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 800;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.1);
+        }
+
+        .job-modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+        }
+
+        .job-modal-company {
+            font-size: 14px;
+            color: #059669;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .job-modal-close-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        .job-modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: rotate(90deg);
+        }
+
+        .job-modal-body {
+            padding: 24px 26px;
+            max-height: calc(85vh - 160px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Metrics Grid */
+        .job-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .job-metric-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .job-metric-card:hover {
+            border-color: #cbd5e1;
+        }
+
+        .job-metric-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .job-metric-icon.experience { background: #eff6ff; color: #3b82f6; }
+        .job-metric-icon.salary { background: #ecfdf5; color: #059669; }
+        .job-metric-icon.location { background: #fef2f2; color: #ef4444; }
+        .job-metric-icon.deadline { background: #fffbeb; color: #d97706; }
+
+        .job-metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .job-metric-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            word-break: break-word;
+        }
+
+        /* Info Sections */
+        .job-section-block {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+
+        .job-section-heading {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .job-section-heading i {
+            color: #059669;
+        }
+
+        .job-desc-text {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        /* Skills Pills */
+        .skills-tag-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-badge-item {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Status & Timeline */
+        .job-status-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #64748b;
+            padding-top: 6px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .job-status-pill {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .job-status-pill.active {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .job-status-pill.expired {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        /* Modal Footer */
+        .job-modal-footer {
+            padding: 16px 26px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-modal-dismiss {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-modal-dismiss:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            text-decoration: none;
+        }
+
+        .btn-modal-apply {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 26px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-modal-apply:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            color: #ffffff;
+            transform: translateY(-1px);
             text-decoration: none;
         }
 
@@ -365,6 +675,195 @@
             }
             .job-card-header {
                 flex-direction: column;
+            }
+
+            /* Modal Mobile Responsive */
+            .job-details-modal-wrapper .modal-dialog {
+                margin: 12px;
+                max-width: 100%;
+            }
+            .job-modal-content-container {
+                border-radius: 12px;
+            }
+            .job-modal-header {
+                padding: 16px 18px;
+            }
+            .job-modal-header-left {
+                gap: 12px;
+            }
+            .job-modal-avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+            .job-modal-title {
+                font-size: 17px;
+            }
+            .job-modal-body {
+                padding: 16px 18px;
+                max-height: calc(80vh - 140px);
+            }
+            .job-metrics-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .job-metric-card {
+                padding: 10px;
+                gap: 8px;
+            }
+            .job-metric-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .job-metric-label {
+                font-size: 10px;
+            }
+            .job-metric-value {
+                font-size: 12px;
+            }
+            .job-modal-footer {
+                padding: 14px 18px;
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            .btn-modal-dismiss, .btn-modal-apply {
+                width: 100%;
+                padding: 12px 16px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .job-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Floating Auto-Closing Toast Notification */
+        .toast-notification-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            max-width: 420px;
+            width: calc(100% - 48px);
+            pointer-events: none;
+        }
+
+        .toast-popup-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 12px 35px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #059669;
+            padding: 16px 18px 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(50px) scale(0.96);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast-popup-card.toast-show {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        .toast-popup-card.toast-hide {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+        }
+
+        .toast-popup-card.toast-success {
+            border-left-color: #059669;
+        }
+        .toast-popup-card.toast-info {
+            border-left-color: #2563eb;
+        }
+        .toast-popup-card.toast-error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-icon-bubble {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .toast-info .toast-icon-bubble {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+        .toast-error .toast-icon-bubble {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .toast-body-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #475569;
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+
+        .toast-close-btn:hover {
+            color: #1e293b;
+        }
+
+        .toast-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #10b981;
+            width: 100%;
+            transform-origin: left;
+            animation: toastCountdown 4s linear forwards;
+        }
+        .toast-info .toast-progress-bar {
+            background: #3b82f6;
+        }
+        .toast-error .toast-progress-bar {
+            background: #ef4444;
+        }
+
+        @@keyframes toastCountdown {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
             }
         }
     </style>
@@ -424,6 +923,58 @@
         <div class="row">
             <div class="col-md-10 col-md-offset-1">
 
+                <!-- Floating Auto-Closing Toast Notification Popup -->
+                <div class="toast-notification-container" id="toastContainer">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-success" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Success!</h4>
+                                <p class="toast-message">@TempData["SuccessMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                    @if (TempData["InfoMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-info" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Notification</h4>
+                                <p class="toast-message">@TempData["InfoMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-error" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Notice</h4>
+                                <p class="toast-message">@TempData["ErrorMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                </div>
+
                 <!-- Results Header -->
                 <div class="feed-header-bar">
                     <div class="results-count-badge">
@@ -445,6 +996,8 @@
                         string postTimeStr = daysAgo == 0 ? "Posted today" : (daysAgo == 1 ? "Posted 1 day ago" : "Posted " + daysAgo + " days ago");
                         string salaryDisplay = (job.Salary >= 100000) ? (job.Salary / 100000).ToString("0.##") + " LPA" : "₹ " + job.Salary.ToString("N0") + " PA";
                         string expDisplay = job.ExperienceRequired == 0 ? "0 Yrs (Fresher)" : job.ExperienceRequired + "+ Yrs Exp";
+                        bool isExpired = job.EndDate < DateTime.Today || string.Equals(job.JobStatus, "Closed", StringComparison.OrdinalIgnoreCase);
+                        bool isAlreadyApplied = appliedJobIds.Contains(job.JobId);
                         
                         // Generate company initials for avatar
                         string companyInitial = !string.IsNullOrWhiteSpace(job.CompanyName) 
@@ -452,13 +1005,29 @@
                             : "CO";
 
                         <div class="job-card">
+                            <!-- Hidden Data Store for Instant Modal (Approach B) -->
+                            <div id="job-detail-data-@job.JobId" style="display:none;">
+                                <span class="jd-title">@job.JobTitle</span>
+                                <span class="jd-company">@(string.IsNullOrWhiteSpace(job.CompanyName) ? "Verified Employer" : job.CompanyName)</span>
+                                <span class="jd-avatar">@companyInitial</span>
+                                <span class="jd-exp">@expDisplay</span>
+                                <span class="jd-salary">@salaryDisplay</span>
+                                <span class="jd-location">@(string.IsNullOrWhiteSpace(job.JobLocation) ? "Remote / Unspecified" : job.JobLocation)</span>
+                                <div class="jd-qualification">@job.RequiredQualification</div>
+                                <span class="jd-skills">@(job.RequiredSkills ?? "")</span>
+                                <span class="jd-posted">@postTimeStr &bull; Posted on @job.PostDate.ToString("dd MMM yyyy")</span>
+                                <span class="jd-deadline">@job.EndDate.ToString("dd MMM yyyy")</span>
+                                <span class="jd-expired">@(isExpired ? "1" : "0")</span>
+                                <span class="jd-applied">@(isAlreadyApplied ? "1" : "0")</span>
+                                <span class="jd-apply">@Url.Action("JobApplication", "Employee", new { JobId = job.JobId })</span>
+                            </div>
                             <!-- Top: Company Avatar + Title + Company Name -->
                             <div class="job-card-header">
                                 <div class="company-avatar-box">
                                     @companyInitial
                                 </div>
                                 <div class="job-title-area">
-                                    <a href="@Url.Action("JobDetails", "Employee", new { id = job.JobId })" class="job-card-title">
+                                    <a href="javascript:void(0)" onclick="openJobDetailsModal(@job.JobId)" class="job-card-title">
                                         @job.JobTitle
                                     </a>
                                     <div class="job-company-name">
@@ -515,12 +1084,21 @@
                                 </div>
 
                                 <div class="card-actions-group">
-                                    <a href="@Url.Action("JobDetails", "Employee", new { id = job.JobId })" class="btn-view-details">
+                                    <button type="button" onclick="openJobDetailsModal(@job.JobId)" class="btn-view-details">
                                         View Details <i class="fa-solid fa-arrow-right"></i>
-                                    </a>
-                                    <a href="@Url.Action("JobDetails", "Employee", new { id = job.JobId })" class="btn-apply-job">
-                                        Apply Now <i class="fa-solid fa-paper-plane"></i>
-                                    </a>
+                                    </button>
+                                    @if (isAlreadyApplied)
+                                    {
+                                        <span class="badge-card-applied">
+                                            <i class="fa-solid fa-circle-check"></i> Applied
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("JobApplication", "Employee", new { JobId = job.JobId })" class="btn-apply-job">
+                                            Apply Now <i class="fa-solid fa-paper-plane"></i>
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -550,3 +1128,230 @@
         </div>
     </div>
 </section>
+
+<!-- Job Details Modal (Popup - Approach B: Instant Client-Side Opening) -->
+<div class="modal fade job-details-modal-wrapper" id="jobDetailsModal" tabindex="-1" role="dialog" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content job-modal-content-container">
+            <!-- Modal Header -->
+            <div class="job-modal-header">
+                <div class="job-modal-header-left">
+                    <div class="job-modal-avatar" id="modalCompanyAvatar">
+                        CO
+                    </div>
+                    <div>
+                        <h3 class="job-modal-title" id="modalJobTitle">Job Title</h3>
+                        <div class="job-modal-company">
+                            <i class="fa-solid fa-building"></i>
+                            <span id="modalCompanyName">Verified Employer</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="job-modal-close-btn" data-dismiss="modal" aria-label="Close" title="Close Popup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Scrollable Content -->
+            <div class="job-modal-body">
+                <!-- 4 Key Metrics Cards -->
+                <div class="job-metrics-grid">
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon experience">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Experience</div>
+                            <div class="job-metric-value" id="modalExperience">0 Yrs</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon salary">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Salary Package</div>
+                            <div class="job-metric-value" style="color: #059669;" id="modalSalary">₹ 0 PA</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon location">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Location</div>
+                            <div class="job-metric-value" id="modalLocation">Location</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon deadline">
+                            <i class="fa-regular fa-calendar-xmark"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Apply Deadline</div>
+                            <div class="job-metric-value" style="color: #b45309;" id="modalDeadline">Deadline</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications & Requirements -->
+                <div class="job-section-block" id="modalQualBlock">
+                    <h4 class="job-section-heading">
+                        <i class="fa-solid fa-graduation-cap"></i> Educational &amp; Eligibility Criteria
+                    </h4>
+                    <p class="job-desc-text" id="modalQualification"></p>
+                </div>
+
+                <!-- Required Skills Section -->
+                <div class="job-section-block">
+                    <h4 class="job-section-heading">
+                        <i class="fa-solid fa-cubes-stacked"></i> Required Skills &amp; Competencies
+                    </h4>
+                    <div class="skills-tag-wrap" id="modalSkillsWrap">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Status & Posted Date Strip -->
+                <div class="job-status-strip">
+                    <div id="modalPostDate">
+                        <i class="fa-regular fa-clock"></i> Posted recently
+                    </div>
+                    <div id="modalStatusBadge">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="job-modal-footer">
+                <button type="button" class="btn-modal-dismiss" data-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+                <a href="#" id="modalApplyBtn" class="btn-modal-apply">
+                    Apply for this Job <i class="fa-solid fa-paper-plane"></i>
+                </a>
+                <span id="modalAlreadyAppliedBadge" style="display:none; background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-weight: 700; font-size: 13px; padding: 10px 22px; border-radius: 8px; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Already Applied
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        function openJobDetailsModal(jobId) {
+            if (!jobId) return;
+
+            var $data = $('#job-detail-data-' + jobId);
+            if (!$data.length) return;
+
+            // 1. Populate Header
+            $('#modalJobTitle').text($data.find('.jd-title').text());
+            $('#modalCompanyName').text($data.find('.jd-company').text());
+            $('#modalCompanyAvatar').text($data.find('.jd-avatar').text());
+
+            // 2. Populate 4 Metrics
+            $('#modalExperience').text($data.find('.jd-exp').text());
+            $('#modalSalary').text($data.find('.jd-salary').text());
+            $('#modalLocation').text($data.find('.jd-location').text());
+            $('#modalDeadline').text($data.find('.jd-deadline').text());
+
+            // 3. Qualification Block
+            var qual = $data.find('.jd-qualification').text().trim();
+            if (qual) {
+                $('#modalQualification').text(qual);
+                $('#modalQualBlock').show();
+            } else {
+                $('#modalQualBlock').hide();
+            }
+
+            // 4. Skills Tag Pills
+            var skillsRaw = $data.find('.jd-skills').text().trim();
+            var $skillsWrap = $('#modalSkillsWrap');
+            $skillsWrap.empty();
+            if (skillsRaw) {
+                var skills = skillsRaw.split(/[,;]+/);
+                for (var i = 0; i < skills.length; i++) {
+                    var s = skills[i].trim();
+                    if (s) {
+                        var $pill = $('<span class="skill-badge-item"><i class="fa-solid fa-check" style="font-size: 10px; color: #059669;"></i> </span>');
+                        $pill.append(document.createTextNode(s));
+                        $skillsWrap.append($pill);
+                    }
+                }
+            } else {
+                var fallbackPill = $('<span class="skill-badge-item"></span>').text($data.find('.jd-title').text());
+                $skillsWrap.append(fallbackPill);
+            }
+
+            // 5. Posted Date & Status
+            $('#modalPostDate').html('<i class="fa-regular fa-clock"></i> ' + $data.find('.jd-posted').html());
+            var isExpired = $data.find('.jd-expired').text() === '1';
+            var isApplied = $data.find('.jd-applied').text() === '1';
+            var $applyBtn = $('#modalApplyBtn');
+            var $alreadyAppliedBadge = $('#modalAlreadyAppliedBadge');
+            var $statusBadge = $('#modalStatusBadge');
+
+            if (isExpired) {
+                $statusBadge.html('<span class="job-status-pill expired"><i class="fa-solid fa-circle-exclamation"></i> Application Closed</span>');
+                $applyBtn.hide();
+                $alreadyAppliedBadge.hide();
+            } else if (isApplied) {
+                $statusBadge.html('<span class="job-status-pill active"><i class="fa-solid fa-circle-check"></i> Application on File</span>');
+                $applyBtn.hide();
+                $alreadyAppliedBadge.css('display', 'inline-flex');
+            } else {
+                $statusBadge.html('<span class="job-status-pill active"><i class="fa-solid fa-circle-check"></i> Actively Recruiting</span>');
+                $alreadyAppliedBadge.hide();
+                $applyBtn.attr('href', $data.find('.jd-apply').text()).show();
+            }
+
+            // 6. Instantly Show Modal (0ms delay!)
+            $('#jobDetailsModal').modal('show');
+        }
+
+        // Auto-dismiss floating toast notification
+        var toastTimer = null;
+        function dismissToast() {
+            var $toast = $('#popupToast');
+            if ($toast.length) {
+                clearTimeout(toastTimer);
+                $toast.removeClass('toast-show').addClass('toast-hide');
+                setTimeout(function () {
+                    $toast.remove();
+                }, 400);
+            }
+        }
+
+        $(document).ready(function () {
+            var $toast = $('#popupToast');
+            if ($toast.length) {
+                // Smooth slide-in
+                setTimeout(function () {
+                    $toast.addClass('toast-show');
+                }, 100);
+
+                // Auto-close after 4 seconds
+                toastTimer = setTimeout(function () {
+                    dismissToast();
+                }, 4000);
+
+                // Pause auto-close if user hovers over toast
+                $toast.on('mouseenter', function () {
+                    clearTimeout(toastTimer);
+                    $toast.find('.toast-progress-bar').css('animation-play-state', 'paused');
+                }).on('mouseleave', function () {
+                    $toast.find('.toast-progress-bar').css('animation-play-state', 'running');
+                    toastTimer = setTimeout(function () {
+                        dismissToast();
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+}
