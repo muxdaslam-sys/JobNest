@@ -7,10 +7,12 @@ using JobNest.Models;
 
 namespace JobNest.Controllers
 {
+    [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
     public class CompanyController : Controller
     {
         JobNestEntities db = new JobNestEntities();
-        // GET: Company
+
+        // Index Page of company
         public ActionResult Index()
         {
             return View();
@@ -56,6 +58,47 @@ namespace JobNest.Controllers
             }
 
             return View(cls);
+        }
+
+        [HttpGet]
+        public ActionResult AddJobPosting()
+        {
+            var LoginId = Session["LoginId"];
+            var LoginType = Session["LoginType"];
+            if (LoginId == null || LoginType == null || LoginType.ToString().ToLower() != "company")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult AddJobPosting(JobPosting model)
+        {
+            int LoginId = Convert.ToInt32(Session["LoginId"]);
+           
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            JobPosting job= new JobPosting 
+            {
+                CompanyId =LoginId,
+                JobTitle = model.JobTitle,
+                ExperienceRequired = model.ExperienceRequired,
+                RequiredSkills = model.RequiredSkills,
+                JobLocation = model.JobLocation,
+                RequiredQualification = model.RequiredQualification,
+                Salary = model.Salary,
+                PostDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(30),
+                JobStatus = "Active"
+            };
+            db.JobPostings.Add(job);
+            db.SaveChanges();
+            ModelState.Clear();
+            TempData["msg"] = "Added Job Posting Succesfully";
+            return View();
         }
     }
 }

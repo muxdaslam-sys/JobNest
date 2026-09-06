@@ -48,3 +48,6 @@ Desktop.ini
 *.mdf
 *.ldf
 *.log
+
+# Uploaded user files
+JobNest/Uploads/

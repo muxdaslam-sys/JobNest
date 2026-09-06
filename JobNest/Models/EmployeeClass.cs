@@ -64,4 +64,5 @@ namespace JobNest.Models
 
         public string EmployeeStatus { get; set; }
     }
+    
 }

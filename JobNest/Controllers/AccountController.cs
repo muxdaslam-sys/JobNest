@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,7 +8,7 @@ using JobNest.Models;
 
 namespace JobNest.Controllers
 {
-    public class LoginController : Controller
+    public class AccountController : Controller
     {
         JobNestEntities db = new JobNestEntities();
 
@@ -30,13 +30,14 @@ namespace JobNest.Controllers
                 if (result != null)
                 {
                     Session["LoginId"] = result.LoginId;
-                    Session["LoginType"] = result.LoginType;
+                    Session["LoginType"] = result.LoginType.ToLower();
+                    Session["Username"] = cls.Username;
 
-                    if (result.LoginType == "company")
+                    if (result.LoginType.ToLower() == "company")
                     {
                         return RedirectToAction("Index", "Company");
                     }
-                    else if (result.LoginType == "Employee")
+                    else if (result.LoginType.ToLower() == "employee")
                     {
                         return RedirectToAction("Index", "Employee");
                     }
@@ -49,5 +50,12 @@ namespace JobNest.Controllers
             return View();
         }
 
+        // GET: Logout
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            return RedirectToAction("Login", "Account");
+        }
     }
 }

@@ -1,8 +1,1357 @@
-﻿
+@model IEnumerable<JobNest.Models.JobPostingView>
 @{
-    ViewBag.Title = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+    ViewBag.Title = "Explore Career Opportunities";
+    var jobs = (ViewBag.Jobs as IEnumerable<JobNest.Models.JobPostingView>) ?? Model;
+    var appliedJobIds = (ViewBag.AppliedJobIds as List<int>) ?? new List<int>();
+    int jobCount = jobs != null ? jobs.Count() : 0;
+    bool hasSearch = !string.IsNullOrWhiteSpace(ViewBag.SearchJobTitle as string) ||
+                     ViewBag.SearchExperience != null ||
+                     !string.IsNullOrWhiteSpace(ViewBag.SearchLocation as string);
 }
 
-<h2>Employee Dasboard</h2>
+@section styles {
+    <style>
+        /* Top Hero & 3-Field Search Bar */
+        .hero-search-section {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+            color: #ffffff;
+            padding: 42px 0 48px 0;
+            box-shadow: 0 4px 20px rgba(6, 78, 59, 0.12);
+        }
 
+        .hero-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            color: #a7f3d0;
+            margin: 0 0 24px 0;
+        }
+
+        .search-container-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .search-field:last-of-type {
+            border-right: none;
+        }
+
+        .search-field i {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .search-field input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: var(--dark-heading);
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .search-field input::placeholder {
+            color: #94a3b8;
+        }
+
+        .btn-search-submit {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            padding: 13px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px var(--emerald-glow);
+        }
+
+        .btn-search-submit:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        .btn-search-reset {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 13px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-search-reset:hover {
+            background: #e2e8f0;
+            color: #334155;
+            text-decoration: none;
+        }
+
+        /* Main Centered Job Listing */
+        .main-workspace {
+            padding: 36px 0 60px 0;
+            flex: 1;
+        }
+
+        .feed-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .results-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .results-count-badge strong {
+            color: var(--primary);
+        }
+
+        /* Modern Job Card */
+        .job-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            padding: 24px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        .job-card:hover {
+            border-color: var(--primary-border);
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .job-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .company-avatar-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 800;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .job-title-area {
+            flex: 1;
+        }
+
+        .job-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            margin: 0 0 4px 0;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .job-card-title:hover {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .job-company-name {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .job-company-name i {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* Pill Metadata Row */
+        .job-meta-grid {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 14px;
+            background-color: #f8fafc;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .meta-grid-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .meta-grid-item i {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .meta-salary-highlight {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        /* Skills */
+        .job-skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .skill-tag-pill {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        /* Footer of Job Card */
+        .job-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            color: #94a3b8;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .post-time-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-deadline {
+            color: #b45309;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .card-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-view-details {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-view-details:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .badge-card-applied {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal Container & Animation Styling */
+        .job-details-modal-wrapper .modal-dialog {
+            max-width: 760px;
+            margin: 40px auto;
+        }
+
+        .job-modal-content-container {
+            border-radius: 16px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            background: #ffffff;
+        }
+
+        .job-modal-header {
+            padding: 22px 26px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .job-modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .job-modal-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #a7f3d0;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 800;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.1);
+        }
+
+        .job-modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+        }
+
+        .job-modal-company {
+            font-size: 14px;
+            color: #059669;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .job-modal-close-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        .job-modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: rotate(90deg);
+        }
+
+        .job-modal-body {
+            padding: 24px 26px;
+            max-height: calc(85vh - 160px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Metrics Grid */
+        .job-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .job-metric-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .job-metric-card:hover {
+            border-color: #cbd5e1;
+        }
+
+        .job-metric-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .job-metric-icon.experience { background: #eff6ff; color: #3b82f6; }
+        .job-metric-icon.salary { background: #ecfdf5; color: #059669; }
+        .job-metric-icon.location { background: #fef2f2; color: #ef4444; }
+        .job-metric-icon.deadline { background: #fffbeb; color: #d97706; }
+
+        .job-metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .job-metric-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            word-break: break-word;
+        }
+
+        /* Info Sections */
+        .job-section-block {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+
+        .job-section-heading {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .job-section-heading i {
+            color: #059669;
+        }
+
+        .job-desc-text {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        /* Skills Pills */
+        .skills-tag-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-badge-item {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Status & Timeline */
+        .job-status-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #64748b;
+            padding-top: 6px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .job-status-pill {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .job-status-pill.active {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .job-status-pill.expired {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        /* Modal Footer */
+        .job-modal-footer {
+            padding: 16px 26px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-modal-dismiss {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-modal-dismiss:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            text-decoration: none;
+        }
+
+        .btn-modal-apply {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 26px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-modal-apply:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            color: #ffffff;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+        .btn-apply-job {
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 18px;
+            border-radius: 6px;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--emerald-glow);
+        }
+
+        .btn-apply-job:hover {
+            background: var(--primary-hover);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        @@media (max-width: 767px) {
+            .search-container-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-field {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .btn-search-submit, .btn-search-reset {
+                width: 100%;
+                justify-content: center;
+            }
+            .job-card-header {
+                flex-direction: column;
+            }
+
+            /* Modal Mobile Responsive */
+            .job-details-modal-wrapper .modal-dialog {
+                margin: 12px;
+                max-width: 100%;
+            }
+            .job-modal-content-container {
+                border-radius: 12px;
+            }
+            .job-modal-header {
+                padding: 16px 18px;
+            }
+            .job-modal-header-left {
+                gap: 12px;
+            }
+            .job-modal-avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+            .job-modal-title {
+                font-size: 17px;
+            }
+            .job-modal-body {
+                padding: 16px 18px;
+                max-height: calc(80vh - 140px);
+            }
+            .job-metrics-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .job-metric-card {
+                padding: 10px;
+                gap: 8px;
+            }
+            .job-metric-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .job-metric-label {
+                font-size: 10px;
+            }
+            .job-metric-value {
+                font-size: 12px;
+            }
+            .job-modal-footer {
+                padding: 14px 18px;
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            .btn-modal-dismiss, .btn-modal-apply {
+                width: 100%;
+                padding: 12px 16px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .job-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Floating Auto-Closing Toast Notification */
+        .toast-notification-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            max-width: 420px;
+            width: calc(100% - 48px);
+            pointer-events: none;
+        }
+
+        .toast-popup-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 12px 35px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #059669;
+            padding: 16px 18px 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(50px) scale(0.96);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast-popup-card.toast-show {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        .toast-popup-card.toast-hide {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+        }
+
+        .toast-popup-card.toast-success {
+            border-left-color: #059669;
+        }
+        .toast-popup-card.toast-info {
+            border-left-color: #2563eb;
+        }
+        .toast-popup-card.toast-error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-icon-bubble {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .toast-info .toast-icon-bubble {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+        .toast-error .toast-icon-bubble {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .toast-body-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #475569;
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+
+        .toast-close-btn:hover {
+            color: #1e293b;
+        }
+
+        .toast-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #10b981;
+            width: 100%;
+            transform-origin: left;
+            animation: toastCountdown 4s linear forwards;
+        }
+        .toast-info .toast-progress-bar {
+            background: #3b82f6;
+        }
+        .toast-error .toast-progress-bar {
+            background: #ef4444;
+        }
+
+        @@keyframes toastCountdown {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
+            }
+        }
+    </style>
+}
+
+<!-- Top 3-Field Search Bar Section -->
+<section class="hero-search-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1 text-center">
+                <h1 class="hero-title">Find Your Next Opportunity</h1>
+                <p class="hero-subtitle">Discover verified jobs tailored to your skills and experience</p>
+
+                <!-- Search Form -->
+                <form method="get" action="@Url.Action("Index", "Employee")">
+                    <div class="search-container-box">
+                        <!-- 1. Job Title / Role -->
+                        <div class="search-field">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" name="searchJobTitle" value="@ViewBag.SearchJobTitle" placeholder="Job title, skills, or role..." />
+                        </div>
+
+                        <!-- 2. Experience -->
+                        <div class="search-field">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <input type="number" name="searchExperience" value="@ViewBag.SearchExperience" placeholder="Max Experience (e.g. 2)..." />
+                        </div>
+
+                        <!-- 3. Location -->
+                        <div class="search-field">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" name="searchLocation" value="@ViewBag.SearchLocation" placeholder="City or Location..." />
+                        </div>
+
+                        <!-- Search Button -->
+                        <button type="submit" class="btn-search-submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search
+                        </button>
+
+                        @if (hasSearch)
+                        {
+                            <a href="@Url.Action("Index", "Employee")" class="btn-search-reset" title="Clear search">
+                                <i class="fa-solid fa-rotate-left"></i> Clear
+                            </a>
+                        }
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Area: Centered Job Cards Feed -->
+<section class="main-workspace">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+
+                <!-- Floating Auto-Closing Toast Notification Popup -->
+                <div class="toast-notification-container" id="toastContainer">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-success" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Success!</h4>
+                                <p class="toast-message">@TempData["SuccessMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                    @if (TempData["InfoMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-info" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Notification</h4>
+                                <p class="toast-message">@TempData["InfoMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="toast-popup-card toast-error" id="popupToast" role="alert">
+                            <div class="toast-icon-bubble">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </div>
+                            <div class="toast-body-content">
+                                <h4 class="toast-title">Notice</h4>
+                                <p class="toast-message">@TempData["ErrorMessage"]</p>
+                            </div>
+                            <button type="button" class="toast-close-btn" onclick="dismissToast()" title="Close">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="toast-progress-bar"></div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Results Header -->
+                <div class="feed-header-bar">
+                    <div class="results-count-badge">
+                        <i class="fa-solid fa-list-check" style="color: var(--primary);"></i>
+                        <span>Showing <strong>@jobCount</strong> Available Job@(jobCount == 1 ? "" : "s")</span>
+                    </div>
+                    @if (hasSearch)
+                    {
+                        <span style="font-size: 13px; color: #64748b;">Filtered results</span>
+                    }
+                </div>
+
+                @if (jobs != null && jobs.Any())
+                {
+                    foreach (var job in jobs)
+                    {
+                        var skillList = (job.RequiredSkills ?? "").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                        var daysAgo = (DateTime.Now - job.PostDate).Days;
+                        string postTimeStr = daysAgo == 0 ? "Posted today" : (daysAgo == 1 ? "Posted 1 day ago" : "Posted " + daysAgo + " days ago");
+                        string salaryDisplay = (job.Salary >= 100000) ? (job.Salary / 100000).ToString("0.##") + " LPA" : "₹ " + job.Salary.ToString("N0") + " PA";
+                        string expDisplay = job.ExperienceRequired == 0 ? "0 Yrs (Fresher)" : job.ExperienceRequired + "+ Yrs Exp";
+                        bool isExpired = job.EndDate < DateTime.Today || string.Equals(job.JobStatus, "Closed", StringComparison.OrdinalIgnoreCase);
+                        bool isAlreadyApplied = appliedJobIds.Contains(job.JobId);
+                        
+                        // Generate company initials for avatar
+                        string companyInitial = !string.IsNullOrWhiteSpace(job.CompanyName) 
+                            ? (job.CompanyName.Length >= 2 ? job.CompanyName.Substring(0, 2).ToUpper() : job.CompanyName.Substring(0, 1).ToUpper()) 
+                            : "CO";
+
+                        <div class="job-card">
+                            <!-- Hidden Data Store for Instant Modal (Approach B) -->
+                            <div id="job-detail-data-@job.JobId" style="display:none;">
+                                <span class="jd-title">@job.JobTitle</span>
+                                <span class="jd-company">@(string.IsNullOrWhiteSpace(job.CompanyName) ? "Verified Employer" : job.CompanyName)</span>
+                                <span class="jd-avatar">@companyInitial</span>
+                                <span class="jd-exp">@expDisplay</span>
+                                <span class="jd-salary">@salaryDisplay</span>
+                                <span class="jd-location">@(string.IsNullOrWhiteSpace(job.JobLocation) ? "Remote / Unspecified" : job.JobLocation)</span>
+                                <div class="jd-qualification">@job.RequiredQualification</div>
+                                <span class="jd-skills">@(job.RequiredSkills ?? "")</span>
+                                <span class="jd-posted">@postTimeStr &bull; Posted on @job.PostDate.ToString("dd MMM yyyy")</span>
+                                <span class="jd-deadline">@job.EndDate.ToString("dd MMM yyyy")</span>
+                                <span class="jd-expired">@(isExpired ? "1" : "0")</span>
+                                <span class="jd-applied">@(isAlreadyApplied ? "1" : "0")</span>
+                                <span class="jd-apply">@Url.Action("JobApplication", "Employee", new { JobId = job.JobId })</span>
+                            </div>
+                            <!-- Top: Company Avatar + Title + Company Name -->
+                            <div class="job-card-header">
+                                <div class="company-avatar-box">
+                                    @companyInitial
+                                </div>
+                                <div class="job-title-area">
+                                    <a href="javascript:void(0)" onclick="openJobDetailsModal(@job.JobId)" class="job-card-title">
+                                        @job.JobTitle
+                                    </a>
+                                    <div class="job-company-name">
+                                        <i class="fa-solid fa-building"></i>
+                                        <span>@(string.IsNullOrWhiteSpace(job.CompanyName) ? "Verified Employer" : job.CompanyName)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Key Info Grid Strip -->
+                            <div class="job-meta-grid">
+                                <div class="meta-grid-item">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                    <span>@expDisplay</span>
+                                </div>
+                                <div class="meta-grid-item">
+                                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                                    <span class="meta-salary-highlight">@salaryDisplay</span>
+                                </div>
+                                <div class="meta-grid-item">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span>@(string.IsNullOrWhiteSpace(job.JobLocation) ? "Not Specified" : job.JobLocation)</span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(job.RequiredQualification))
+                                {
+                                    <div class="meta-grid-item">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                        <span>@job.RequiredQualification</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Skills Badges -->
+                            <div class="job-skills-container">
+                                @if (skillList.Length > 0)
+                                {
+                                    foreach (var s in skillList)
+                                    {
+                                        <span class="skill-tag-pill">@s.Trim()</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="skill-tag-pill">@job.JobTitle</span>
+                                }
+                            </div>
+
+                            <!-- Footer: Dates + Actions -->
+                            <div class="job-card-footer">
+                                <div class="post-time-info">
+                                    <span><i class="fa-regular fa-clock"></i> @postTimeStr</span>
+                                    &bull;
+                                    <span class="badge-deadline"><i class="fa-regular fa-calendar-xmark"></i> Apply by @job.EndDate.ToString("dd MMM yyyy")</span>
+                                </div>
+
+                                <div class="card-actions-group">
+                                    <button type="button" onclick="openJobDetailsModal(@job.JobId)" class="btn-view-details">
+                                        View Details <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                    @if (isAlreadyApplied)
+                                    {
+                                        <span class="badge-card-applied">
+                                            <i class="fa-solid fa-circle-check"></i> Applied
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("JobApplication", "Employee", new { JobId = job.JobId })" class="btn-apply-job">
+                                            Apply Now <i class="fa-solid fa-paper-plane"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Empty State -->
+                    <div class="job-card text-center" style="padding: 50px 20px; text-align: center;">
+                        <div style="width: 70px; height: 70px; background: #ecfdf5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #059669; font-size: 30px; margin-bottom: 16px;">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">No Active Jobs Found</h3>
+                        <p style="font-size: 14px; color: #64748b; margin: 0 auto 16px auto; max-width: 420px;">
+                            @(hasSearch ? "No job openings matched your search criteria. Try different keywords or clear your search." : "There are currently no active job openings available. Please check back soon!")
+                        </p>
+                        @if (hasSearch)
+                        {
+                            <a href="@Url.Action("Index", "Employee")" class="btn-search-submit" style="text-decoration: none;">
+                                <i class="fa-solid fa-rotate-left"></i> View All Jobs
+                            </a>
+                        }
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Job Details Modal (Popup - Approach B: Instant Client-Side Opening) -->
+<div class="modal fade job-details-modal-wrapper" id="jobDetailsModal" tabindex="-1" role="dialog" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content job-modal-content-container">
+            <!-- Modal Header -->
+            <div class="job-modal-header">
+                <div class="job-modal-header-left">
+                    <div class="job-modal-avatar" id="modalCompanyAvatar">
+                        CO
+                    </div>
+                    <div>
+                        <h3 class="job-modal-title" id="modalJobTitle">Job Title</h3>
+                        <div class="job-modal-company">
+                            <i class="fa-solid fa-building"></i>
+                            <span id="modalCompanyName">Verified Employer</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="job-modal-close-btn" data-dismiss="modal" aria-label="Close" title="Close Popup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Scrollable Content -->
+            <div class="job-modal-body">
+                <!-- 4 Key Metrics Cards -->
+                <div class="job-metrics-grid">
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon experience">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Experience</div>
+                            <div class="job-metric-value" id="modalExperience">0 Yrs</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon salary">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Salary Package</div>
+                            <div class="job-metric-value" style="color: #059669;" id="modalSalary">₹ 0 PA</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon location">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Location</div>
+                            <div class="job-metric-value" id="modalLocation">Location</div>
+                        </div>
+                    </div>
+
+                    <div class="job-metric-card">
+                        <div class="job-metric-icon deadline">
+                            <i class="fa-regular fa-calendar-xmark"></i>
+                        </div>
+                        <div>
+                            <div class="job-metric-label">Apply Deadline</div>
+                            <div class="job-metric-value" style="color: #b45309;" id="modalDeadline">Deadline</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications & Requirements -->
+                <div class="job-section-block" id="modalQualBlock">
+                    <h4 class="job-section-heading">
+                        <i class="fa-solid fa-graduation-cap"></i> Educational &amp; Eligibility Criteria
+                    </h4>
+                    <p class="job-desc-text" id="modalQualification"></p>
+                </div>
+
+                <!-- Required Skills Section -->
+                <div class="job-section-block">
+                    <h4 class="job-section-heading">
+                        <i class="fa-solid fa-cubes-stacked"></i> Required Skills &amp; Competencies
+                    </h4>
+                    <div class="skills-tag-wrap" id="modalSkillsWrap">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Status & Posted Date Strip -->
+                <div class="job-status-strip">
+                    <div id="modalPostDate">
+                        <i class="fa-regular fa-clock"></i> Posted recently
+                    </div>
+                    <div id="modalStatusBadge">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="job-modal-footer">
+                <button type="button" class="btn-modal-dismiss" data-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+                <a href="#" id="modalApplyBtn" class="btn-modal-apply">
+                    Apply for this Job <i class="fa-solid fa-paper-plane"></i>
+                </a>
+                <span id="modalAlreadyAppliedBadge" style="display:none; background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-weight: 700; font-size: 13px; padding: 10px 22px; border-radius: 8px; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Already Applied
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        function openJobDetailsModal(jobId) {
+            if (!jobId) return;
+
+            var $data = $('#job-detail-data-' + jobId);
+            if (!$data.length) return;
+
+            // 1. Populate Header
+            $('#modalJobTitle').text($data.find('.jd-title').text());
+            $('#modalCompanyName').text($data.find('.jd-company').text());
+            $('#modalCompanyAvatar').text($data.find('.jd-avatar').text());
+
+            // 2. Populate 4 Metrics
+            $('#modalExperience').text($data.find('.jd-exp').text());
+            $('#modalSalary').text($data.find('.jd-salary').text());
+            $('#modalLocation').text($data.find('.jd-location').text());
+            $('#modalDeadline').text($data.find('.jd-deadline').text());
+
+            // 3. Qualification Block
+            var qual = $data.find('.jd-qualification').text().trim();
+            if (qual) {
+                $('#modalQualification').text(qual);
+                $('#modalQualBlock').show();
+            } else {
+                $('#modalQualBlock').hide();
+            }
+
+            // 4. Skills Tag Pills
+            var skillsRaw = $data.find('.jd-skills').text().trim();
+            var $skillsWrap = $('#modalSkillsWrap');
+            $skillsWrap.empty();
+            if (skillsRaw) {
+                var skills = skillsRaw.split(/[,;]+/);
+                for (var i = 0; i < skills.length; i++) {
+                    var s = skills[i].trim();
+                    if (s) {
+                        var $pill = $('<span class="skill-badge-item"><i class="fa-solid fa-check" style="font-size: 10px; color: #059669;"></i> </span>');
+                        $pill.append(document.createTextNode(s));
+                        $skillsWrap.append($pill);
+                    }
+                }
+            } else {
+                var fallbackPill = $('<span class="skill-badge-item"></span>').text($data.find('.jd-title').text());
+                $skillsWrap.append(fallbackPill);
+            }
+
+            // 5. Posted Date & Status
+            $('#modalPostDate').html('<i class="fa-regular fa-clock"></i> ' + $data.find('.jd-posted').html());
+            var isExpired = $data.find('.jd-expired').text() === '1';
+            var isApplied = $data.find('.jd-applied').text() === '1';
+            var $applyBtn = $('#modalApplyBtn');
+            var $alreadyAppliedBadge = $('#modalAlreadyAppliedBadge');
+            var $statusBadge = $('#modalStatusBadge');
+
+            if (isExpired) {
+                $statusBadge.html('<span class="job-status-pill expired"><i class="fa-solid fa-circle-exclamation"></i> Application Closed</span>');
+                $applyBtn.hide();
+                $alreadyAppliedBadge.hide();
+            } else if (isApplied) {
+                $statusBadge.html('<span class="job-status-pill active"><i class="fa-solid fa-circle-check"></i> Application on File</span>');
+                $applyBtn.hide();
+                $alreadyAppliedBadge.css('display', 'inline-flex');
+            } else {
+                $statusBadge.html('<span class="job-status-pill active"><i class="fa-solid fa-circle-check"></i> Actively Recruiting</span>');
+                $alreadyAppliedBadge.hide();
+                $applyBtn.attr('href', $data.find('.jd-apply').text()).show();
+            }
+
+            // 6. Instantly Show Modal (0ms delay!)
+            $('#jobDetailsModal').modal('show');
+        }
+
+        // Auto-dismiss floating toast notification
+        var toastTimer = null;
+        function dismissToast() {
+            var $toast = $('#popupToast');
+            if ($toast.length) {
+                clearTimeout(toastTimer);
+                $toast.removeClass('toast-show').addClass('toast-hide');
+                setTimeout(function () {
+                    $toast.remove();
+                }, 400);
+            }
+        }
+
+        $(document).ready(function () {
+            var $toast = $('#popupToast');
+            if ($toast.length) {
+                // Smooth slide-in
+                setTimeout(function () {
+                    $toast.addClass('toast-show');
+                }, 100);
+
+                // Auto-close after 4 seconds
+                toastTimer = setTimeout(function () {
+                    dismissToast();
+                }, 4000);
+
+                // Pause auto-close if user hovers over toast
+                $toast.on('mouseenter', function () {
+                    clearTimeout(toastTimer);
+                    $toast.find('.toast-progress-bar').css('animation-play-state', 'paused');
+                }).on('mouseleave', function () {
+                    $toast.find('.toast-progress-bar').css('animation-play-state', 'running');
+                    toastTimer = setTimeout(function () {
+                        dismissToast();
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+}
