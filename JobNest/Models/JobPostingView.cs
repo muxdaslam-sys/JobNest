@@ -45,4 +45,16 @@ namespace JobNest.Models
         public string ApplicationStatus { get; set; }
         public string ResumePath { get; set; }
     }
+
+    public class AppliedJobs
+    {
+        public int JobId { get; set; }
+        public string JobTitle { get; set; }
+        public string CompanyName { get; set; }
+        public string JobLocation { get; set; }
+        public decimal? Salary { get; set; }
+        public DateTime? ApplicationDate { get; set; }
+        public string ApplicationStatus { get; set; }
+        public string ResumePath { get; set; }
+    }
 }
