@@ -306,5 +306,37 @@ namespace JobNest.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        public ActionResult ViewAppliedJobs()
+        {
+            int EmpId = Convert.ToInt32(Session["LoginId"]);
+            var LoginType = Session["LoginType"];
+            if (EmpId <= 0 || LoginType == null || LoginType.ToString().ToLower() != "employee")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var query = from ja in db.JobApplications
+                        join jp in db.JobPostings on ja.JobId equals jp.JobId
+                        join login in db.UserLogins on jp.CompanyId equals login.LoginId
+                        join company in db.Companies on login.RegistrationId equals company.CompanyId
+                        where ja.EmployeeId == EmpId
+                        orderby ja.ApplicationDate descending
+                        select new AppliedJobs
+                        {
+                            JobId = jp.JobId,
+                            CompanyName = company.CompanyName,
+                            JobTitle = jp.JobTitle,
+                            JobLocation = jp.JobLocation,
+                            Salary = jp.Salary,
+                            ApplicationDate = ja.ApplicationDate,
+                            ApplicationStatus = ja.ApplicationStatus,
+                            ResumePath = ja.Resume
+                        };
+            var appliedJobs = query.ToList();
+            ViewBag.AppliedJobs = appliedJobs;
+            return View(appliedJobs);
+        }
     }
 }
