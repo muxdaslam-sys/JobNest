@@ -235,6 +235,7 @@
     <Content Include="Views\Company\Index.cshtml" />
     <Content Include="Views\Company\AddJobPosting.cshtml" />
     <Content Include="Views\Employee\JobApplication.cshtml" />
+    <Content Include="Views\Employee\ViewAppliedJobs.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
