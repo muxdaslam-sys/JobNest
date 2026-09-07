@@ -44,10 +44,10 @@ namespace JobNest.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("Username or Password", "Invalid Username or Password ");
+                    ModelState.AddModelError("", "Invalid Username or Password. Please check your credentials and try again.");
                 }
             }
-            return View();
+            return View(cls);
         }
 
         // GET: Logout
