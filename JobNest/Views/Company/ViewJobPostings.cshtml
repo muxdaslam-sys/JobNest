@@ -1,0 +1,801 @@
+@model IEnumerable<JobNest.JobPosting>
+
+@{
+    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    ViewBag.Title = "Manage Job Postings";
+
+    var postings = (Model ?? (ViewBag.AllPostings as IEnumerable<JobNest.JobPosting>) ?? new List<JobNest.JobPosting>()).ToList();
+    int totalJobs = postings.Count;
+    var now = DateTime.Now.Date;
+    int activeJobs = postings.Count(p => (p.JobStatus ?? "").ToLower() == "active" && p.EndDate >= now);
+    int expiredJobs = totalJobs - activeJobs;
+
+    // Fetch applicant count per job for immediate recruiter intelligence
+    Dictionary<int, int> applicantCounts = new Dictionary<int, int>();
+    try
+    {
+        using (var db = new JobNest.JobNestEntities())
+        {
+            var jobIds = postings.Select(p => p.JobId).ToList();
+            if (jobIds.Any())
+            {
+                var appGroup = db.JobApplications
+                                 .Where(a => jobIds.Contains(a.JobId))
+                                 .GroupBy(a => a.JobId)
+                                 .Select(g => new { JobId = g.Key, Count = g.Count() })
+                                 .ToList();
+
+                foreach (var g in appGroup)
+                {
+                    applicantCounts[g.JobId] = g.Count;
+                }
+            }
+        }
+    }
+    catch
+    {
+        // Graceful fallback
+    }
+}
+
+@section styles {
+    <style>
+        /* ==========================================================================
+           MODERN RECRUITER POSTINGS MANAGER - PIXEL PERFECT SYSTEM
+           ========================================================================== */
+        :root {
+            --primary: #185adb;
+            --primary-dark: #0f3d99;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            --text-title: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --border-ui: #e2e8f0;
+            --surface-white: #ffffff;
+            --surface-bg: #f8fafc;
+            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+            --card-shadow-hover: 0 8px 24px -4px rgba(15, 23, 42, 0.1);
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-body);
+            overflow-x: hidden;
+        }
+
+        /* 1. Hero Command Header */
+        .postings-hero {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 55%, #185adb 100%);
+            color: #ffffff;
+            padding: 36px 0 54px 0;
+            position: relative;
+        }
+
+        .hero-flex-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .hero-title-box {
+            flex: 1 1 500px;
+            min-width: 280px;
+        }
+
+        .hero-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.35);
+        }
+
+        .hero-heading {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+        }
+
+        .hero-subheading {
+            font-size: 14px;
+            color: #bfdbfe;
+            margin: 0;
+            line-height: 1.5;
+            max-width: 620px;
+        }
+
+        .hero-actions-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-post-cta {
+            background: #ffffff;
+            color: var(--primary) !important;
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-post-cta:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-dash-link {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-weight: 600;
+            font-size: 13.5px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-dash-link:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
+        }
+
+        /* 2. Main Content Body */
+        .postings-body {
+            margin-top: -26px;
+            padding-bottom: 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 3. 3-Card KPI Intelligence Bar */
+        .kpi-row-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-height: 100px;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .kpi-card-info h3 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0 0 4px 0;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-card-info p {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .kpi-blue { background: #eff6ff; color: #2563eb; }
+        .kpi-emerald { background: #ecfdf5; color: #059669; }
+        .kpi-amber { background: #fffbeb; color: #d97706; }
+
+        /* 4. Filter & Search Toolbar */
+        .toolbar-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1 1 300px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .search-input-field {
+            width: 100%;
+            padding: 9px 14px 9px 38px;
+            border: 1px solid var(--border-ui);
+            border-radius: 8px;
+            font-size: 13.5px;
+            background: #f8fafc;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .search-input-field:focus {
+            background: #ffffff;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-tab-pill-group {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 5. Job Posting Cards Container */
+        .job-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .job-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 22px 24px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: #cbd5e1;
+        }
+
+        .job-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .job-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .job-title-text {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .job-status-pill {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .status-active-pill {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-expired-pill {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .applicant-count-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Meta Details Strip */
+        .job-meta-strip {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .job-meta-unit {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .job-meta-unit i {
+            color: #94a3b8;
+            font-size: 13.5px;
+        }
+
+        .job-meta-unit strong {
+            color: var(--text-title);
+            font-weight: 600;
+        }
+
+        /* Skills Tags */
+        .job-tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .skill-pill {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid var(--border-ui);
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Card Footer Row */
+        .job-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .job-footer-dates {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-view-pipeline {
+            background: var(--primary);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 2px 6px rgba(24, 90, 219, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .btn-view-pipeline:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(24, 90, 219, 0.35);
+        }
+
+        /* Empty State */
+        .empty-card {
+            background: var(--surface-white);
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 54px 20px;
+            text-align: center;
+        }
+
+        .empty-circle-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 14px;
+        }
+
+        .empty-card h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0 0 6px 0;
+        }
+
+        .empty-card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            max-width: 440px;
+            margin: 0 auto 20px auto;
+            line-height: 1.5;
+        }
+
+        /* 6. Responsive Optimization */
+        @@media (max-width: 991px) {
+            .kpi-row-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .hero-flex-wrap {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .hero-actions-wrap {
+                width: 100%;
+            }
+            .btn-post-cta, .btn-dash-link {
+                flex: 1;
+                justify-content: center;
+            }
+            .toolbar-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-tab-pill-group {
+                justify-content: center;
+            }
+            .job-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .job-card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn-view-pipeline {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<!-- ==========================================================================
+     HERO BANNER
+     ========================================================================== -->
+<div class="postings-hero">
+    <div class="container">
+        <div class="hero-flex-wrap">
+            
+            <div class="hero-title-box">
+                <div class="hero-badge-pill">
+                    <span class="pulse-dot"></span>
+                    <span>Recruiter Hub &bull; Job Postings Manager</span>
+                </div>
+                <h1 class="hero-heading">
+                    Manage Posted Job Openings
+                </h1>
+                <p class="hero-subheading">
+                    Track applicant submissions, evaluate candidate engagement, and publish new hiring requirements.
+                </p>
+            </div>
+
+            <div class="hero-actions-wrap">
+                <a href="@Url.Action("AddJobPosting", "Company")" class="btn-post-cta">
+                    <i class="fa-solid fa-circle-plus"></i> Post a New Job
+                </a>
+                <a href="@Url.Action("Index", "Company")" class="btn-dash-link">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MAIN POSTINGS BODY
+     ========================================================================== -->
+<div class="postings-body">
+    <div class="container">
+
+        <!-- 3-Tile KPI Intelligence Row -->
+        <div class="kpi-row-grid">
+            
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h3>@totalJobs</h3>
+                    <p>Total Job Postings</p>
+                </div>
+                <div class="kpi-card-icon kpi-blue">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h3>@activeJobs</h3>
+                    <p>Active Openings</p>
+                </div>
+                <div class="kpi-card-icon kpi-emerald">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h3>@expiredJobs</h3>
+                    <p>Expired / Closed</p>
+                </div>
+                <div class="kpi-card-icon kpi-amber">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar-card">
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="jobSearchInput" class="search-input-field" placeholder="Search by Job Title, Required Skills, or Location..." onkeyup="filterPostings()" />
+            </div>
+
+            <div class="filter-tab-pill-group">
+                <button type="button" class="tab-btn active" onclick="setFilter('all', this)">All (@totalJobs)</button>
+                <button type="button" class="tab-btn" onclick="setFilter('active', this)">Active (@activeJobs)</button>
+                <button type="button" class="tab-btn" onclick="setFilter('expired', this)">Expired (@expiredJobs)</button>
+            </div>
+        </div>
+
+        <!-- Job Postings List -->
+        <div id="jobPostingsContainer" class="job-items-container">
+            @if (totalJobs == 0)
+            {
+                <div class="empty-card">
+                    <div class="empty-circle-icon">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <h3>No Job Openings Published Yet</h3>
+                    <p>Publish your company's open positions to start receiving qualified applicant resumes.</p>
+                    <a href="@Url.Action("AddJobPosting", "Company")" class="btn-post-cta" style="background: #185adb; color: #ffffff !important; border: none;">
+                        <i class="fa-solid fa-circle-plus"></i> Post Your First Opening
+                    </a>
+                </div>
+            }
+            else
+            {
+                foreach (var item in postings)
+                {
+                    bool isActive = (item.JobStatus ?? "").ToLower() == "active" && item.EndDate >= now;
+                    string statusTag = isActive ? "active" : "expired";
+                    int appCount = applicantCounts.ContainsKey(item.JobId) ? applicantCounts[item.JobId] : 0;
+                    string searchContent = (item.JobTitle + " " + item.JobLocation + " " + item.RequiredSkills + " " + item.RequiredQualification).ToLower();
+
+                    <div class="job-card job-posting-item" data-status="@statusTag" data-search="@searchContent">
+                        
+                        <!-- Header Row -->
+                        <div class="job-card-header">
+                            <div>
+                                <div class="job-title-row">
+                                    <h3 class="job-title-text">@item.JobTitle</h3>
+                                    
+                                    @if (isActive)
+                                    {
+                                        <span class="job-status-pill status-active-pill">
+                                            <i class="fa-solid fa-circle" style="font-size: 6px;"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="job-status-pill status-expired-pill">
+                                            <i class="fa-solid fa-circle-xmark" style="font-size: 9px;"></i> Expired
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="applicant-count-badge">
+                                    <i class="fa-solid fa-users"></i> @appCount @(appCount == 1 ? "Applicant" : "Applicants")
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Meta Strip -->
+                        <div class="job-meta-strip">
+                            <span class="job-meta-unit">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <strong>@item.JobLocation</strong>
+                            </span>
+
+                            <span class="job-meta-unit">
+                                <i class="fa-solid fa-briefcase"></i>
+                                <strong>@item.ExperienceRequired+ Years</strong> Exp
+                            </span>
+
+                            <span class="job-meta-unit">
+                                <i class="fa-solid fa-wallet"></i>
+                                <strong>@if (item.Salary > 0) { <text>&#8377;@item.Salary.ToString("N0")</text> } else { <text>Negotiable</text> }</strong>
+                            </span>
+
+                            @if (!string.IsNullOrWhiteSpace(item.RequiredQualification))
+                            {
+                                <span class="job-meta-unit">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    @item.RequiredQualification
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Skill Tags -->
+                        @if (!string.IsNullOrWhiteSpace(item.RequiredSkills))
+                        {
+                            var skills = item.RequiredSkills.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (skills.Length > 0)
+                            {
+                                <div class="job-tags-row">
+                                    @foreach (var s in skills)
+                                    {
+                                        <span class="skill-pill">@s.Trim()</span>
+                                    }
+                                </div>
+                            }
+                        }
+
+                        <!-- Footer Row -->
+                        <div class="job-card-footer">
+                            <div class="job-footer-dates">
+                                <span><i class="fa-regular fa-calendar-check" style="color: #94a3b8; margin-right: 4px;"></i> Posted: <strong>@item.PostDate.ToString("dd MMM yyyy")</strong></span>
+                                <span><i class="fa-regular fa-clock" style="color: #94a3b8; margin-right: 4px;"></i> Closes: <strong>@item.EndDate.ToString("dd MMM yyyy")</strong></span>
+                            </div>
+
+                            <a href="@Url.Action("ViewApplications", "Company", new { id = item.JobId })" class="btn-view-pipeline">
+                                <i class="fa-solid fa-id-card-clip"></i> Review Applications (@appCount)
+                            </a>
+                        </div>
+
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        var currentStatusFilter = 'all';
+
+        function setFilter(status, btn) {
+            currentStatusFilter = status;
+            var buttons = document.querySelectorAll('.filter-tab-pill-group .tab-btn');
+            buttons.forEach(function (b) { b.classList.remove('active'); });
+            if (btn) { btn.classList.add('active'); }
+            filterPostings();
+        }
+
+        function filterPostings() {
+            var searchInput = document.getElementById('jobSearchInput');
+            var query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            var cards = document.querySelectorAll('#jobPostingsContainer .job-posting-item');
+
+            cards.forEach(function (card) {
+                var cardStatus = card.getAttribute('data-status') || '';
+                var cardSearch = card.getAttribute('data-search') || '';
+
+                var matchesStatus = (currentStatusFilter === 'all') || (cardStatus === currentStatusFilter);
+                var matchesSearch = (query === '') || (cardSearch.indexOf(query) > -1);
+
+                if (matchesStatus && matchesSearch) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

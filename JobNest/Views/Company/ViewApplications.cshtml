@@ -1,0 +1,890 @@
+@model IEnumerable<JobNest.Models.CandidateApplicationViewModel>
+
+@{
+    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    ViewBag.Title = "Candidate Applications";
+
+    var applications = (Model ?? (ViewBag.AllApplications as IEnumerable<JobNest.Models.CandidateApplicationViewModel>) ?? new List<JobNest.Models.CandidateApplicationViewModel>()).ToList();
+    int totalApplications = applications.Count;
+
+    var currentJob = ViewBag.Job as JobNest.JobPosting;
+
+    int inReviewCount = applications.Count(a =>
+        string.IsNullOrEmpty(a.ApplicationStatus) ||
+        string.Equals(a.ApplicationStatus, "In Review", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(a.ApplicationStatus, "Active", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(a.ApplicationStatus, "Applied", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(a.ApplicationStatus, "Pending", StringComparison.OrdinalIgnoreCase)
+    );
+
+    int shortlistedCount = applications.Count(a =>
+        string.Equals(a.ApplicationStatus, "Shortlisted", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(a.ApplicationStatus, "Accepted", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(a.ApplicationStatus, "Approved", StringComparison.OrdinalIgnoreCase)
+    );
+
+    int rejectedCount = applications.Count(a =>
+        string.Equals(a.ApplicationStatus, "Rejected", StringComparison.OrdinalIgnoreCase)
+    );
+
+    string roleTitle = currentJob != null ? currentJob.JobTitle : "Job Opening";
+}
+
+@section styles {
+    <style>
+        /* ==========================================================================
+           MODERN CANDIDATE APPLICATIONS MANAGER - PIXEL PERFECT SYSTEM
+           ========================================================================== */
+        :root {
+            --primary: #185adb;
+            --primary-dark: #0f3d99;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            --text-title: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --border-ui: #e2e8f0;
+            --surface-white: #ffffff;
+            --surface-bg: #f8fafc;
+            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+            --card-shadow-hover: 0 8px 24px -4px rgba(15, 23, 42, 0.1);
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-body);
+            overflow-x: hidden;
+        }
+
+        /* 1. Hero Header */
+        .apps-hero {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 55%, #185adb 100%);
+            color: #ffffff;
+            padding: 34px 0 52px 0;
+            position: relative;
+        }
+
+        .hero-flex-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .hero-title-group {
+            flex: 1 1 500px;
+            min-width: 280px;
+        }
+
+        .hero-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.35);
+        }
+
+        .hero-heading {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
+        }
+
+        .hero-heading span {
+            color: #93c5fa;
+        }
+
+        .hero-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #bfdbfe;
+            margin-top: 6px;
+        }
+
+        .hero-meta-unit {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-back-link {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-back-link:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateX(-2px);
+        }
+
+        /* 2. Main Content Body */
+        .apps-body {
+            margin-top: -26px;
+            padding-bottom: 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 3. 4-Card Application KPI Metrics Bar */
+        .kpi-app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-app-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi-app-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .kpi-app-info h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0 0 2px 0;
+            line-height: 1;
+        }
+
+        .kpi-app-info p {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-app-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .icon-total { background: #eff6ff; color: #2563eb; }
+        .icon-review { background: #fffbeb; color: #d97706; }
+        .icon-shortlist { background: #ecfdf5; color: #059669; }
+        .icon-reject { background: #fef2f2; color: #dc2626; }
+
+        /* 4. Filter & Search Toolbar */
+        .toolbar-box {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1 1 280px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13.5px;
+        }
+
+        .search-input-field {
+            width: 100%;
+            padding: 8px 14px 8px 36px;
+            border: 1px solid var(--border-ui);
+            border-radius: 8px;
+            font-size: 13px;
+            background: #f8fafc;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .search-input-field:focus {
+            background: #ffffff;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-tab-pill-group {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 5. Main Card & Applications Table */
+        .main-apps-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .table-responsive-clean {
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        .apps-table-modern {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+
+        .apps-table-modern thead th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border-ui);
+            white-space: nowrap;
+        }
+
+        .apps-table-modern tbody tr {
+            background: #ffffff;
+            transition: background-color 0.15s ease;
+        }
+
+        .apps-table-modern tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .apps-table-modern tbody td {
+            padding: 14px 18px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-body);
+        }
+
+        .apps-table-modern tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Candidate Cell */
+        .cand-profile-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cand-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .cand-name-meta h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-title);
+            margin: 0 0 2px 0;
+        }
+
+        .cand-id-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Contact Details */
+        .cand-contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 12.5px;
+            color: #475569;
+        }
+
+        .cand-contact-info span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cand-contact-info i {
+            color: #94a3b8;
+            font-size: 12px;
+            width: 14px;
+            text-align: center;
+        }
+
+        /* Skills Pills */
+        .cand-skill-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin: 1px 2px 1px 0;
+            white-space: nowrap;
+        }
+
+        /* Resume Button */
+        .btn-view-resume {
+            background: #ffffff;
+            color: var(--primary) !important;
+            border: 1px solid var(--primary-border);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-view-resume:hover {
+            background: var(--primary);
+            color: #ffffff !important;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(24, 90, 219, 0.2);
+        }
+
+        .no-resume-tag {
+            color: #94a3b8;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* Status Dropdown */
+        .status-control-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-select-box {
+            height: 34px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .status-select-box.status-in-review {
+            border: 1.5px solid #bfdbfe;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .status-select-box.status-shortlisted {
+            border: 1.5px solid #bbf7d0;
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+
+        .status-select-box.status-rejected {
+            border: 1.5px solid #fecaca;
+            background-color: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .status-save-pill {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Empty State */
+        .empty-apps-box {
+            text-align: center;
+            padding: 56px 20px;
+        }
+
+        .empty-apps-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .empty-apps-box h4 {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0 0 6px 0;
+        }
+
+        .empty-apps-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 440px;
+            margin: 0 auto 16px auto;
+            line-height: 1.5;
+        }
+
+        /* 6. Responsive Optimization */
+        @@media (max-width: 991px) {
+            .kpi-app-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .hero-flex-wrap {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn-back-link {
+                width: 100%;
+                justify-content: center;
+            }
+            .kpi-app-grid {
+                grid-template-columns: 1fr;
+            }
+            .toolbar-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-tab-pill-group {
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<!-- ==========================================================================
+     HERO BANNER
+     ========================================================================== -->
+<div class="apps-hero">
+    <div class="container">
+        <div class="hero-flex-wrap">
+            
+            <div class="hero-title-group">
+                <div class="hero-badge-pill">
+                    <span class="pulse-dot"></span>
+                    <span>Talent Pipeline &bull; Candidate Applications</span>
+                </div>
+                
+                <h1 class="hero-heading">
+                    Applications for: <span>@roleTitle</span>
+                </h1>
+
+                @if (currentJob != null)
+                {
+                    <div class="hero-meta-row">
+                        <span class="hero-meta-unit">
+                            <i class="fa-solid fa-location-dot"></i> @currentJob.JobLocation
+                        </span>
+                        <span class="hero-meta-unit">
+                            <i class="fa-solid fa-user-clock"></i> @currentJob.ExperienceRequired+ Yrs Exp
+                        </span>
+                        <span class="hero-meta-unit">
+                            <i class="fa-solid fa-wallet"></i> @if (currentJob.Salary > 0) { <text>&#8377;@currentJob.Salary.ToString("N0")</text> } else { <text>Negotiable</text> }
+                        </span>
+                        <span class="hero-meta-unit">
+                            <i class="fa-regular fa-calendar"></i> Posted @currentJob.PostDate.ToString("dd MMM yyyy")
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <div>
+                <a href="@Url.Action("ViewJobPostings", "Company")" class="btn-back-link">
+                    <i class="fa-solid fa-arrow-left"></i> All Job Postings
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MAIN APPLICATIONS BODY
+     ========================================================================== -->
+<div class="apps-body">
+    <div class="container">
+
+        <!-- 4-Card Candidate Pipeline KPI Grid -->
+        <div class="kpi-app-grid">
+            <div class="kpi-app-card">
+                <div class="kpi-app-info">
+                    <h3>@totalApplications</h3>
+                    <p>Total Candidates</p>
+                </div>
+                <div class="kpi-app-icon icon-total">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="kpi-app-card">
+                <div class="kpi-app-info">
+                    <h3>@inReviewCount</h3>
+                    <p>In Review</p>
+                </div>
+                <div class="kpi-app-icon icon-review">
+                    <i class="fa-solid fa-user-clock"></i>
+                </div>
+            </div>
+
+            <div class="kpi-app-card">
+                <div class="kpi-app-info">
+                    <h3>@shortlistedCount</h3>
+                    <p>Shortlisted</p>
+                </div>
+                <div class="kpi-app-icon icon-shortlist">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="kpi-app-card">
+                <div class="kpi-app-info">
+                    <h3>@rejectedCount</h3>
+                    <p>Rejected</p>
+                </div>
+                <div class="kpi-app-icon icon-reject">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar-box">
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="candidateSearchInput" class="search-input-field" placeholder="Search by candidate name, email, skills, ID..." onkeyup="filterCandidates()" />
+            </div>
+
+            <div class="filter-tab-pill-group">
+                <button type="button" class="tab-btn active" onclick="setCandidateFilter('all', this)">All (@totalApplications)</button>
+                <button type="button" class="tab-btn" onclick="setCandidateFilter('in review', this)">In Review (@inReviewCount)</button>
+                <button type="button" class="tab-btn" onclick="setCandidateFilter('shortlisted', this)">Shortlisted (@shortlistedCount)</button>
+                <button type="button" class="tab-btn" onclick="setCandidateFilter('rejected', this)">Rejected (@rejectedCount)</button>
+            </div>
+        </div>
+
+        <!-- Main Applications Table Card -->
+        <div class="main-apps-card">
+            @if (totalApplications == 0)
+            {
+                <div class="empty-apps-box">
+                    <div class="empty-apps-icon">
+                        <i class="fa-solid fa-inbox"></i>
+                    </div>
+                    <h4>No Applications Received Yet</h4>
+                    <p>There are no candidate submissions logged for this job opening yet. Once job seekers apply, their profiles and resumes will appear here.</p>
+                    <a href="@Url.Action("ViewJobPostings", "Company")" class="btn btn-sm btn-default" style="font-weight: 700; color: var(--primary); border-color: #cbd5e1;">
+                        <i class="fa-solid fa-arrow-left"></i> Return to Job Postings
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive-clean">
+                    <table class="apps-table-modern" id="candidatesTable">
+                        <thead>
+                            <tr>
+                                <th>Candidate Profile</th>
+                                <th>Contact Information</th>
+                                <th>Applied Date</th>
+                                <th>Resume Document</th>
+                                <th>Recruitment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var app in applications)
+                            {
+                                string candName = !string.IsNullOrWhiteSpace(app.CandidateName) ? app.CandidateName : ("Candidate #" + app.EmployeeId);
+                                string candEmail = app.CandidateEmail ?? "";
+                                string candPhone = app.CandidatePhone ?? "";
+                                string candSkills = app.CandidateSkills ?? "";
+                                string initial = !string.IsNullOrEmpty(candName) ? candName.Substring(0, 1).ToUpper() : "C";
+
+                                var currentStatus = string.IsNullOrWhiteSpace(app.ApplicationStatus) ? "In Review" : app.ApplicationStatus.Trim();
+                                var statusClass = "status-in-review";
+                                var statusTag = "in review";
+
+                                if (string.Equals(currentStatus, "Shortlisted", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(currentStatus, "Accepted", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(currentStatus, "Approved", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    statusClass = "status-shortlisted";
+                                    statusTag = "shortlisted";
+                                    currentStatus = "Shortlisted";
+                                }
+                                else if (string.Equals(currentStatus, "Rejected", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    statusClass = "status-rejected";
+                                    statusTag = "rejected";
+                                    currentStatus = "Rejected";
+                                }
+                                else
+                                {
+                                    currentStatus = "In Review";
+                                }
+
+                                string searchIndex = (candName + " " + candEmail + " " + candPhone + " " + candSkills + " #app-" + app.JobApplicationId).ToLower();
+
+                                <tr class="candidate-row-item" data-status="@statusTag" data-search="@searchIndex">
+                                    
+                                    <!-- Candidate Info -->
+                                    <td>
+                                        <div class="cand-profile-cell">
+                                            <div class="cand-avatar">
+                                                @initial
+                                            </div>
+                                            <div class="cand-name-meta">
+                                                <h4>@candName</h4>
+                                                <span class="cand-id-tag">#APP-@app.JobApplicationId &bull; ID: CAND-@app.EmployeeId</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Contact Info -->
+                                    <td>
+                                        <div class="cand-contact-info">
+                                            @if (!string.IsNullOrWhiteSpace(candEmail))
+                                            {
+                                                <span><i class="fa-solid fa-envelope"></i> @candEmail</span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(candPhone))
+                                            {
+                                                <span><i class="fa-solid fa-phone"></i> @candPhone</span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(candSkills))
+                                            {
+                                                var skillsList = candSkills.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                                                <div style="margin-top: 2px;">
+                                                    @foreach (var s in skillsList.Take(3))
+                                                    {
+                                                        <span class="cand-skill-badge">@s.Trim()</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <!-- Date -->
+                                    <td>
+                                        <span style="font-weight: 600; color: #334155;">
+                                            <i class="fa-regular fa-calendar" style="color: #94a3b8; margin-right: 4px;"></i>
+                                            @app.ApplicationDate.ToString("dd MMM yyyy")
+                                        </span>
+                                    </td>
+
+                                    <!-- Resume -->
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(app.Resume))
+                                        {
+                                            <a href="@Url.Content(app.Resume)" target="_blank" class="btn-view-resume" title="View resume document">
+                                                <i class="fa-solid fa-file-pdf" style="color: #e11d48;"></i> View Resume
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-resume-tag">
+                                                <i class="fa-solid fa-file-circle-xmark"></i> Not Attached
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <!-- Status Selector -->
+                                    <td>
+                                        <div class="status-control-wrap">
+                                            <select class="status-select-box @statusClass" data-app-id="@app.JobApplicationId">
+                                                <option value="In Review" @(currentStatus == "In Review" ? "selected" : "")>In Review</option>
+                                                <option value="Shortlisted" @(currentStatus == "Shortlisted" ? "selected" : "")>Shortlisted</option>
+                                                <option value="Rejected" @(currentStatus == "Rejected" ? "selected" : "")>Rejected</option>
+                                            </select>
+                                            <span id="status-indicator-@app.JobApplicationId" class="status-save-pill"></span>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        var currentCandidateFilter = 'all';
+
+        function setCandidateFilter(status, btn) {
+            currentCandidateFilter = status;
+            var buttons = document.querySelectorAll('.filter-tab-pill-group .tab-btn');
+            buttons.forEach(function (b) { b.classList.remove('active'); });
+            if (btn) { btn.classList.add('active'); }
+            filterCandidates();
+        }
+
+        function filterCandidates() {
+            var searchInput = document.getElementById('candidateSearchInput');
+            var query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            var rows = document.querySelectorAll('#candidatesTable tbody tr.candidate-row-item');
+
+            rows.forEach(function (row) {
+                var rowStatus = row.getAttribute('data-status') || '';
+                var rowSearch = row.getAttribute('data-search') || '';
+
+                var matchesStatus = (currentCandidateFilter === 'all') || (rowStatus === currentCandidateFilter);
+                var matchesSearch = (query === '') || (rowSearch.indexOf(query) > -1);
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            function updateSelectStyle($sel, statusVal) {
+                $sel.removeClass("status-in-review status-shortlisted status-rejected");
+                var lower = statusVal.toLowerCase();
+                if (lower.indexOf("shortlisted") !== -1 || lower.indexOf("accepted") !== -1) {
+                    $sel.addClass("status-shortlisted");
+                } else if (lower.indexOf("rejected") !== -1 || lower.indexOf("declined") !== -1) {
+                    $sel.addClass("status-rejected");
+                } else {
+                    $sel.addClass("status-in-review");
+                }
+            }
+
+            // AJAX Status Update Handler
+            $(".status-select-box").on("change", function () {
+                var $select = $(this);
+                var appId = $select.attr("data-app-id");
+                var newStatus = $select.val();
+                var $indicator = $("#status-indicator-" + appId);
+
+                updateSelectStyle($select, newStatus);
+                $indicator.html('<i class="fa-solid fa-spinner fa-spin text-muted"></i> <span style="color: #64748b;">Saving...</span>').show();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateApplicationStatus", "Company")',
+                    type: 'POST',
+                    data: {
+                        applicationId: appId,
+                        status: newStatus
+                    },
+                    success: function (response) {
+                        if (response && response.success) {
+                            $indicator.html('<i class="fa-solid fa-circle-check text-success"></i> <span style="color: #16a34a;">Saved!</span>');
+                            setTimeout(function () {
+                                $indicator.fadeOut(400, function () {
+                                    $(this).empty().show();
+                                });
+                            }, 2000);
+                        } else {
+                            $indicator.html('<i class="fa-solid fa-circle-xmark text-danger"></i> <span style="color: #dc2626;">' + (response.message || 'Error') + '</span>');
+                        }
+                    },
+                    error: function () {
+                        $indicator.html('<i class="fa-solid fa-circle-xmark text-danger"></i> <span style="color: #dc2626;">Failed</span>');
+                    }
+                });
+            });
+        });
+    </script>
+}

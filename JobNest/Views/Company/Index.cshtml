@@ -1,426 +1,1164 @@
 @{
     Layout = "~/Views/Shared/_CompanyLayout.cshtml";
-    ViewBag.Title = "Recruiter Dashboard";
+    ViewBag.Title = "Recruiter Command Center";
+
+    int companyId = 0;
+    if (Session["LoginId"] != null)
+    {
+        int.TryParse(Session["LoginId"].ToString(), out companyId);
+    }
+    string companyUsername = Session["Username"] != null ? Session["Username"].ToString() : "Recruiter";
+
+    JobNest.Company currentCompany = null;
+    List<JobNest.JobPosting> companyJobs = new List<JobNest.JobPosting>();
+    List<JobNest.JobApplication> recentApplications = new List<JobNest.JobApplication>();
+    Dictionary<int, string> applicantNames = new Dictionary<int, string>();
+    Dictionary<int, string> jobTitles = new Dictionary<int, string>();
+
+    int totalPostings = 0;
+    int activePostings = 0;
+    int totalApplications = 0;
+    int inReviewCount = 0;
+    int shortlistedCount = 0;
+
+    try
+    {
+        using (var db = new JobNest.JobNestEntities())
+        {
+            if (companyId > 0)
+            {
+                currentCompany = db.Companies.FirstOrDefault(c => c.CompanyId == companyId);
+                companyJobs = db.JobPostings.Where(j => j.CompanyId == companyId)
+                                            .OrderByDescending(j => j.PostDate)
+                                            .ToList();
+
+                var jobIds = companyJobs.Select(j => j.JobId).ToList();
+                totalPostings = companyJobs.Count;
+                var now = DateTime.Now.Date;
+                activePostings = companyJobs.Count(j => (j.JobStatus ?? "").ToLower() == "active" && j.EndDate >= now);
+
+                if (jobIds.Any())
+                {
+                    var allApps = db.JobApplications.Where(a => jobIds.Contains(a.JobId)).ToList();
+                    totalApplications = allApps.Count;
+
+                    // Active or In Review status
+                    inReviewCount = allApps.Count(a =>
+                        string.IsNullOrEmpty(a.ApplicationStatus) ||
+                        string.Equals(a.ApplicationStatus, "In Review", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(a.ApplicationStatus, "Active", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(a.ApplicationStatus, "Applied", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(a.ApplicationStatus, "Pending", StringComparison.OrdinalIgnoreCase)
+                    );
+
+                    shortlistedCount = allApps.Count(a =>
+                        string.Equals(a.ApplicationStatus, "Shortlisted", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(a.ApplicationStatus, "Accepted", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(a.ApplicationStatus, "Approved", StringComparison.OrdinalIgnoreCase)
+                    );
+
+                    foreach (var j in companyJobs)
+                    {
+                        jobTitles[j.JobId] = j.JobTitle;
+                    }
+
+                    recentApplications = allApps.OrderByDescending(a => a.ApplicationDate).Take(6).ToList();
+                    var loginIds = recentApplications.Select(a => a.EmployeeId).Distinct().ToList();
+                    var logins = db.UserLogins.Where(u => loginIds.Contains(u.LoginId)).ToList();
+                    var regIds = logins.Select(u => u.RegistrationId).Distinct().ToList();
+                    var emps = db.Employees.Where(e => regIds.Contains(e.EmployeeId) || loginIds.Contains(e.EmployeeId)).ToList();
+
+                    foreach (var app in recentApplications)
+                    {
+                        var login = logins.FirstOrDefault(l => l.LoginId == app.EmployeeId);
+                        int targetEmpId = login != null ? login.RegistrationId : app.EmployeeId;
+                        var emp = emps.FirstOrDefault(e => e.EmployeeId == targetEmpId || e.EmployeeId == app.EmployeeId);
+                        if (emp != null && !string.IsNullOrWhiteSpace(emp.EmployeeName))
+                        {
+                            applicantNames[app.EmployeeId] = emp.EmployeeName;
+                        }
+                        else if (login != null && !string.IsNullOrWhiteSpace(login.Username))
+                        {
+                            applicantNames[app.EmployeeId] = login.Username;
+                        }
+                        else
+                        {
+                            applicantNames[app.EmployeeId] = "Candidate #" + app.EmployeeId;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch
+    {
+        // Graceful fallback
+    }
+
+    string displayName = currentCompany != null && !string.IsNullOrWhiteSpace(currentCompany.CompanyName)
+        ? currentCompany.CompanyName
+        : companyUsername;
+
+    int currentHour = DateTime.Now.Hour;
+    string timeGreeting = currentHour < 12 ? "Good morning" : (currentHour < 17 ? "Good afternoon" : "Good evening");
 }
 
 @section styles {
     <style>
-        /* Dashboard Banner */
-        .dash-hero {
-            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 60%, #185adb 100%);
-            color: #ffffff;
-            padding: 32px 0 40px 0;
-            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.12);
+        /* ==========================================================================
+           OPTIMIZED RECRUITER COMMAND CENTER - PIXEL PERFECT DESIGN SYSTEM
+           ========================================================================== */
+        :root {
+            --primary: #185adb;
+            --primary-dark: #0f3d99;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            --text-title: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --border-ui: #e2e8f0;
+            --surface-white: #ffffff;
+            --surface-bg: #f8fafc;
+            --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+            --card-shadow-hover: 0 8px 24px -4px rgba(15, 23, 42, 0.1);
         }
 
-        .dash-hero h1 {
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-body);
+            overflow-x: hidden;
+        }
+
+        /* 1. Hero Header: Balanced, No-Overflow Flexbox */
+        .dash-hero-section {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 55%, #185adb 100%);
+            color: #ffffff;
+            padding: 36px 0 54px 0;
+            position: relative;
+        }
+
+        .hero-flex-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .hero-info-col {
+            flex: 1 1 540px;
+            min-width: 280px;
+        }
+
+        .hero-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.35);
+        }
+
+        .hero-heading {
             font-size: 26px;
             font-weight: 800;
             margin: 0 0 6px 0;
             letter-spacing: -0.5px;
+            line-height: 1.3;
         }
 
-        .dash-hero p {
-            font-size: 14px;
+        .hero-heading span {
             color: #93c5fd;
-            margin: 0;
         }
 
-        .btn-dash-post {
-            background: #ffffff;
-            color: #185adb !important;
-            font-weight: 700;
+        .hero-subheading {
             font-size: 14px;
-            padding: 10px 22px;
+            color: #bfdbfe;
+            margin: 0;
+            line-height: 1.5;
+            max-width: 600px;
+        }
+
+        .hero-actions-col {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action-primary {
+            background: #ffffff;
+            color: var(--primary) !important;
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none !important;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
-        .btn-dash-post:hover {
-            background: #f0fdf4;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        .btn-action-primary:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
-        /* Main Dashboard Content */
-        .dash-wrapper {
-            padding: 32px 0 60px 0;
+        .btn-action-ghost {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-weight: 600;
+            font-size: 13.5px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
-        /* KPI Metric Cards */
-        .kpi-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 22px;
+        .btn-action-ghost:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
+        }
+
+        /* 2. Main Body Container */
+        .dash-main-body {
+            margin-top: -26px;
+            padding-bottom: 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 3. 4-Card KPI Grid: Exactly Equal Heights & Alignment */
+        .kpi-equal-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
             margin-bottom: 24px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .kpi-box {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 145px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .kpi-box-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s ease;
+            margin-bottom: 12px;
         }
 
-        .kpi-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border-color: #cbd5e1;
-        }
-
-        .kpi-info h3 {
-            font-size: 26px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0 0 4px 0;
-        }
-
-        .kpi-info p {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            margin: 0;
+        .kpi-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin: 0;
         }
 
-        .kpi-icon-box {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+        .kpi-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 16px;
         }
 
-        .kpi-blue {
-            background-color: #eff6ff;
-            color: #2563eb;
+        .kpi-icon-blue { background: #eff6ff; color: #2563eb; }
+        .kpi-icon-emerald { background: #ecfdf5; color: #059669; }
+        .kpi-icon-amber { background: #fffbeb; color: #d97706; }
+        .kpi-icon-purple { background: #faf5ff; color: #7c3aed; }
+
+        .kpi-val {
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-title);
+            line-height: 1;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
         }
 
-        .kpi-emerald {
-            background-color: #ecfdf5;
-            color: #059669;
-        }
-
-        .kpi-amber {
-            background-color: #fffbeb;
-            color: #d97706;
-        }
-
-        .kpi-purple {
-            background-color: #faf5ff;
-            color: #7e22ce;
-        }
-
-        /* Section Panels */
-        .dash-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 26px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .dash-card-header {
+        .kpi-baseline-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 14px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+            margin-top: auto;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .kpi-footer-tag {
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-blue { color: #2563eb; }
+        .tag-emerald { color: #059669; }
+        .tag-amber { color: #d97706; }
+        .tag-purple { color: #7c3aed; }
+
+        /* 4. 3-Tile Productivity Matrix: Uniform Height & Proportions */
+        .action-matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .matrix-tile {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 12px;
+            padding: 18px 20px;
+            text-decoration: none !important;
+            color: inherit;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .matrix-tile:hover {
+            border-color: var(--primary-border);
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .matrix-icon-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .matrix-tile:hover .matrix-icon-circle {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .matrix-tile-body h4 {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text-title);
+            margin: 0 0 3px 0;
+            transition: color 0.2s ease;
+        }
+
+        .matrix-tile:hover .matrix-tile-body h4 {
+            color: var(--primary);
+        }
+
+        .matrix-tile-body p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* 5. Standard Content Card Panels */
+        .content-card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-head-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #f1f5f9;
         }
 
-        .dash-card-header h3 {
-            font-size: 17px;
-            font-weight: 700;
-            color: #0f172a;
+        .card-head-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-title);
             margin: 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .dash-card-header h3 i {
-            color: #185adb;
+        .card-head-title i {
+            color: var(--primary);
         }
 
-        /* Quick Action Tiles */
-        .action-tile {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
+        .card-head-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 16px;
+            border: 1px solid var(--primary-border);
+        }
+
+        /* 6. Candidate Submissions Feed */
+        .applicant-list-group {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            text-decoration: none !important;
-            color: #1e293b;
-            transition: all 0.2s ease;
-            height: 100%;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .action-tile:hover {
+        .applicant-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
             background: #ffffff;
-            border-color: #bfdbfe;
-            box-shadow: 0 4px 16px rgba(24, 90, 219, 0.1);
-            transform: translateY(-2px);
-            color: #185adb;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            transition: all 0.15s ease;
         }
 
-        .action-icon {
-            width: 42px;
-            height: 42px;
-            background: #eff6ff;
-            color: #185adb;
-            border-radius: 10px;
+        .applicant-row:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            transform: translateX(2px);
+        }
+
+        .applicant-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .applicant-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 14px;
+            font-weight: 700;
             flex-shrink: 0;
         }
 
-        .action-tile h4 {
-            font-size: 15px;
+        .applicant-meta {
+            min-width: 0;
+        }
+
+        .applicant-name {
+            font-size: 13.5px;
             font-weight: 700;
+            color: var(--text-title);
+            margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .applicant-subtext {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .applicant-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-pill {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .status-pill.pill-review { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .status-pill.pill-shortlist { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-pill.pill-reject { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .btn-review-sm {
+            background: #ffffff;
+            color: var(--primary) !important;
+            border: 1px solid #cbd5e1;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 6px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-review-sm:hover {
+            background: var(--primary);
+            color: #ffffff !important;
+            border-color: var(--primary);
+        }
+
+        /* 7. Pipeline Funnel Analytics */
+        .pipeline-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            display: flex;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .bar-seg {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .seg-blue { background: #2563eb; }
+        .seg-emerald { background: #10b981; }
+        .seg-gray { background: #94a3b8; }
+
+        .pipeline-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .pipeline-stat-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .pipeline-stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .pipeline-stat-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-title);
+            line-height: 1;
+        }
+
+        .pipeline-stat-pct {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        /* 8. Right Sidebar Widgets */
+        .profile-center-box {
+            text-align: center;
+        }
+
+        .profile-avatar-large {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #185adb, #2563eb);
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 6px 14px rgba(24, 90, 219, 0.25);
+        }
+
+        .profile-name {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-title);
             margin: 0 0 4px 0;
         }
 
-        .action-tile p {
-            font-size: 12.5px;
-            color: #64748b;
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        /* Empty State Box */
-        .empty-activity-box {
-            text-align: center;
-            padding: 40px 20px;
-            background: #f8fafc;
-            border-radius: 12px;
-            border: 1px dashed #cbd5e1;
-        }
-
-        .empty-activity-box i {
-            font-size: 44px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-        }
-
-        .empty-activity-box h4 {
-            font-size: 16px;
+        .profile-verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-size: 11.5px;
             font-weight: 700;
-            color: #334155;
-            margin: 0 0 6px 0;
+            padding: 2px 8px;
+            border-radius: 14px;
+            margin-bottom: 14px;
         }
 
-        .empty-activity-box p {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0 0 16px 0;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+        .profile-details-list {
+            list-style: none;
+            padding: 12px 0 0 0;
+            margin: 0;
+            border-top: 1px solid #f1f5f9;
+            text-align: left;
+            font-size: 12.5px;
+            color: #475569;
         }
 
-        /* Recruiter Tips Box */
-        .recruiter-tip-box {
-            background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+        .profile-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .profile-detail-row i {
+            color: #94a3b8;
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .pro-tip-panel {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
             border: 1px solid #bbf7d0;
             border-radius: 12px;
-            padding: 18px;
-            margin-top: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
 
-        .recruiter-tip-box h4 {
-            font-size: 14px;
-            font-weight: 700;
-            color: #14532d;
-            margin: 0 0 6px 0;
+        .pro-tip-head {
+            font-size: 13px;
+            font-weight: 800;
+            color: #166534;
             display: flex;
             align-items: center;
             gap: 6px;
+            margin-bottom: 6px;
         }
 
-        .recruiter-tip-box p {
-            font-size: 12.5px;
-            color: #166534;
-            margin: 0;
+        .pro-tip-desc {
+            font-size: 12px;
+            color: #15803d;
             line-height: 1.45;
+            margin: 0;
+        }
+
+        .support-cta-btn {
+            font-weight: 700;
+            color: var(--primary) !important;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            font-size: 12.5px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            width: 100%;
+        }
+
+        .support-cta-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        /* 9. Responsive Optimization */
+        @@media (max-width: 991px) {
+            .kpi-equal-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .action-matrix-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .hero-flex-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .hero-actions-col {
+                width: 100%;
+            }
+            .btn-action-primary, .btn-action-ghost {
+                flex: 1;
+                justify-content: center;
+            }
+            .kpi-equal-grid {
+                grid-template-columns: 1fr;
+            }
+            .applicant-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .applicant-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .pipeline-stats-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 }
 
-<!-- Dashboard Banner -->
-<div class="dash-hero">
+<!-- ==========================================================================
+     HERO COMMAND SECTION
+     ========================================================================== -->
+<div class="dash-hero-section">
     <div class="container">
-        <div class="row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-            <div class="col-sm-8">
-                <h1>Employer Recruitment Dashboard</h1>
-                <p>Manage your job postings, track applicant submissions, and streamline your hiring pipeline.</p>
+        <div class="hero-flex-container">
+            
+            <div class="hero-info-col">
+                <div class="hero-badge-pill">
+                    <span class="pulse-dot"></span>
+                    <span>Talent Acquisition Hub &bull; @timeGreeting</span>
+                </div>
+                <h1 class="hero-heading">
+                    Welcome back, <span>@displayName</span>
+                </h1>
+                <p class="hero-subheading">
+                    Monitor candidate engagement, review real-time submissions, and manage active job listings seamlessly.
+                </p>
             </div>
-            <div class="col-sm-4 text-right">
-                <a href="@Url.Action("AddJobPosting", "Company")" class="btn-dash-post">
-                    <i class="fa-solid fa-circle-plus"></i> Post a New Job
+
+            <div class="hero-actions-col">
+                <a href="@Url.Action("AddJobPosting", "Company")" class="btn-action-primary">
+                    <i class="fa-solid fa-circle-plus"></i> Post a Job Opening
+                </a>
+                <a href="@Url.Action("ViewJobPostings", "Company")" class="btn-action-ghost">
+                    <i class="fa-solid fa-layer-group"></i> Manage Postings (@totalPostings)
                 </a>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- Main Dashboard Container -->
-<div class="dash-wrapper">
+<!-- ==========================================================================
+     MAIN DASHBOARD BODY
+     ========================================================================== -->
+<div class="dash-main-body">
     <div class="container">
 
-        <!-- KPI Metrics Grid -->
-        <div class="row">
-            <div class="col-md-3 col-sm-6">
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>Active</h3>
-                        <p>Job Postings</p>
+        <!-- 1. 4-Card KPI Intelligence Grid (Uniform Flex Height) -->
+        <div class="kpi-equal-grid">
+            
+            <!-- KPI 1: Active Openings -->
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-box-top">
+                        <span class="kpi-label">Active Openings</span>
+                        <div class="kpi-icon-wrap kpi-icon-blue">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
                     </div>
-                    <div class="kpi-icon-box kpi-blue">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </div>
+                    <div class="kpi-val">@activePostings</div>
+                </div>
+                <div class="kpi-baseline-footer">
+                    <span>Published: <strong>@totalPostings</strong></span>
+                    <a href="@Url.Action("ViewJobPostings", "Company")" style="color: #2563eb; font-weight: 700; text-decoration: none;">
+                        Manage <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="col-md-3 col-sm-6">
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>Verified</h3>
-                        <p>Company Profile</p>
+            <!-- KPI 2: Total Applicants -->
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-box-top">
+                        <span class="kpi-label">Total Applicants</span>
+                        <div class="kpi-icon-wrap kpi-icon-emerald">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                        </div>
                     </div>
-                    <div class="kpi-icon-box kpi-emerald">
-                        <i class="fa-solid fa-building-circle-check"></i>
-                    </div>
+                    <div class="kpi-val">@totalApplications</div>
+                </div>
+                <div class="kpi-baseline-footer">
+                    <span class="kpi-footer-tag tag-emerald">
+                        <i class="fa-solid fa-chart-line"></i> Pipeline Growth
+                    </span>
+                    <span>All Roles</span>
                 </div>
             </div>
 
-            <div class="col-md-3 col-sm-6">
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>30 Days</h3>
-                        <p>Listing Window</p>
+            <!-- KPI 3: In Review -->
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-box-top">
+                        <span class="kpi-label">In Review</span>
+                        <div class="kpi-icon-wrap kpi-icon-amber">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
                     </div>
-                    <div class="kpi-icon-box kpi-amber">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
+                    <div class="kpi-val">@inReviewCount</div>
+                </div>
+                <div class="kpi-baseline-footer">
+                    <span class="kpi-footer-tag tag-amber">
+                        <i class="fa-solid fa-spinner"></i> Active Status
+                    </span>
+                    <span>Evaluation</span>
                 </div>
             </div>
 
-            <div class="col-md-3 col-sm-6">
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>2.5M+</h3>
-                        <p>Active Seekers</p>
+            <!-- KPI 4: Shortlisted -->
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-box-top">
+                        <span class="kpi-label">Shortlisted</span>
+                        <div class="kpi-icon-wrap kpi-icon-purple">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
                     </div>
-                    <div class="kpi-icon-box kpi-purple">
-                        <i class="fa-solid fa-users-viewfinder"></i>
-                    </div>
+                    <div class="kpi-val">@shortlistedCount</div>
+                </div>
+                <div class="kpi-baseline-footer">
+                    <span class="kpi-footer-tag tag-purple">
+                        <i class="fa-solid fa-award"></i> Qualified
+                    </span>
+                    <span>Approved</span>
                 </div>
             </div>
+
         </div>
 
+        <!-- 2. Fast-Track Productivity Matrix (Balanced 3-Column Grid) -->
+        <div class="action-matrix-grid">
+            
+            <a href="@Url.Action("AddJobPosting", "Company")" class="matrix-tile">
+                <div class="matrix-icon-circle">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="matrix-tile-body">
+                    <h4>Create New Job</h4>
+                    <p>Draft an opening with required skills, experience, and salary range.</p>
+                </div>
+            </a>
+
+            <a href="@Url.Action("ViewJobPostings", "Company")" class="matrix-tile">
+                <div class="matrix-icon-circle">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div class="matrix-tile-body">
+                    <h4>Manage Postings</h4>
+                    <p>Track active listings, monitor applications, and update criteria.</p>
+                </div>
+            </a>
+
+            @if (companyJobs.Any())
+            {
+                <a href="@Url.Action("ViewApplications", "Company", new { id = companyJobs.First().JobId })" class="matrix-tile">
+                    <div class="matrix-icon-circle">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                    </div>
+                    <div class="matrix-tile-body">
+                        <h4>Review Candidates</h4>
+                        <p>Evaluate submissions and profiles for your active requirements.</p>
+                    </div>
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("AddJobPosting", "Company")" class="matrix-tile">
+                    <div class="matrix-icon-circle">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="matrix-tile-body">
+                        <h4>Instant Talent Reach</h4>
+                        <p>Publish your first vacancy to activate candidate discovery immediately.</p>
+                    </div>
+                </a>
+            }
+
+        </div>
+
+        <!-- 3. Balanced 2-Column Workspace (Col-md-8 / Col-md-4) -->
         <div class="row">
-            <!-- Left Main Column: Quick Actions & Recent Postings -->
-            <div class="col-md-8">
+            
+            <!-- LEFT COLUMN: Candidate Submissions & Pipeline Distribution -->
+            <div class="col-md-8 col-sm-12">
                 
-                <!-- Quick Actions Grid -->
-                <div class="dash-card">
-                    <div class="dash-card-header">
-                        <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                <!-- Candidate Submissions Feed -->
+                <div class="content-card">
+                    <div class="card-head-row">
+                        <h3 class="card-head-title">
+                            <i class="fa-solid fa-user-check"></i> Recent Candidate Submissions
+                        </h3>
+                        <span class="card-head-badge">@totalApplications Total</span>
                     </div>
-                    <div class="row">
-                        <div class="col-sm-6" style="margin-bottom: 16px;">
-                            <a href="@Url.Action("AddJobPosting", "Company")" class="action-tile">
-                                <div class="action-icon">
-                                    <i class="fa-solid fa-plus-circle"></i>
+
+                    @if (recentApplications.Any())
+                    {
+                        <div class="applicant-list-group">
+                            @foreach (var app in recentApplications)
+                            {
+                                string candName = applicantNames.ContainsKey(app.EmployeeId) ? applicantNames[app.EmployeeId] : ("Applicant #" + app.EmployeeId);
+                                string roleTitle = jobTitles.ContainsKey(app.JobId) ? jobTitles[app.JobId] : "Job Opening";
+                                string initial = !string.IsNullOrEmpty(candName) ? candName.Substring(0, 1).ToUpper() : "A";
+                                string rawStatus = string.IsNullOrWhiteSpace(app.ApplicationStatus) ? "In Review" : app.ApplicationStatus.Trim();
+                                string statusLower = rawStatus.ToLower();
+
+                                <div class="applicant-row">
+                                    <div class="applicant-left">
+                                        <div class="applicant-avatar">@initial</div>
+                                        <div class="applicant-meta">
+                                            <h5 class="applicant-name">@candName</h5>
+                                            <p class="applicant-subtext">Applied for <strong>@roleTitle</strong> &bull; @app.ApplicationDate.ToString("MMM dd, yyyy")</p>
+                                        </div>
+                                    </div>
+                                    <div class="applicant-right">
+                                        @if (statusLower == "shortlisted" || statusLower == "accepted" || statusLower == "approved")
+                                        {
+                                            <span class="status-pill pill-shortlist">
+                                                <i class="fa-solid fa-check"></i> Shortlisted
+                                            </span>
+                                        }
+                                        else if (statusLower == "rejected")
+                                        {
+                                            <span class="status-pill pill-reject">
+                                                <i class="fa-solid fa-xmark"></i> Rejected
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pill pill-review">
+                                                <i class="fa-solid fa-spinner"></i> In Review
+                                            </span>
+                                        }
+
+                                        <a href="@Url.Action("ViewApplications", "Company", new { id = app.JobId })" class="btn-review-sm">
+                                            Review <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                                        </a>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4>Post New Opening</h4>
-                                    <p>Publish an opening with required skills, experience, and compensation.</p>
-                                </div>
+                            }
+                        </div>
+
+                        <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Displaying up to @recentApplications.Count recent applicants</span>
+                            <a href="@Url.Action("ViewJobPostings", "Company")" style="font-weight: 700; color: #185adb; text-decoration: none;">
+                                View All Role Pipelines <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
                             </a>
                         </div>
-                        <div class="col-sm-6" style="margin-bottom: 16px;">
-                            <a href="@Url.Action("Index", "Company")" class="action-tile">
-                                <div class="action-icon">
-                                    <i class="fa-solid fa-layer-group"></i>
-                                </div>
-                                <div>
-                                    <h4>Manage Posted Jobs</h4>
-                                    <p>Monitor your active requirements and applicant responses.</p>
-                                </div>
+                    }
+                    else
+                    {
+                        <div style="text-align: center; padding: 36px 16px; background: #fafafa; border-radius: 10px; border: 1px dashed #cbd5e1;">
+                            <i class="fa-solid fa-inbox" style="font-size: 32px; color: #cbd5e1; margin-bottom: 8px;"></i>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #334155; margin: 0 0 4px 0;">No Candidate Submissions Yet</h4>
+                            <p style="font-size: 12.5px; color: #64748b; margin: 0 0 14px 0;">Once job seekers apply to your vacancies, their profile details will appear here.</p>
+                            <a href="@Url.Action("AddJobPosting", "Company")" class="btn btn-sm btn-primary" style="background: #185adb; border-color: #185adb; font-weight: 600;">
+                                <i class="fa-solid fa-circle-plus"></i> Post a Job Opening
                             </a>
                         </div>
-                    </div>
+                    }
                 </div>
 
-                <!-- Recent Activity / Hiring Center -->
-                <div class="dash-card">
-                    <div class="dash-card-header">
-                        <h3><i class="fa-solid fa-chart-line"></i> Hiring Overview</h3>
+                <!-- Pipeline Funnel Distribution -->
+                <div class="content-card">
+                    <div class="card-head-row" style="margin-bottom: 14px;">
+                        <h3 class="card-head-title">
+                            <i class="fa-solid fa-chart-pie"></i> Candidate Pipeline Distribution
+                        </h3>
+                        <span class="card-head-badge">Live Status</span>
                     </div>
 
-                    <div class="empty-activity-box">
-                        <i class="fa-solid fa-folder-open"></i>
-                        <h4>Start by Posting Your First Job Opening</h4>
-                        <p>Reach qualified professionals and engineers instantly by publishing your job requirement.</p>
-                        <a href="@Url.Action("AddJobPosting", "Company")" class="btn btn-primary" style="background-color: #185adb; border-color: #185adb; font-weight: 600; padding: 8px 20px; border-radius: 6px;">
-                            <i class="fa-solid fa-paper-plane"></i> Post a Job Now
-                        </a>
+                    @{
+                        int denom = totalApplications > 0 ? totalApplications : 1;
+                        int pctInReview = (int)Math.Round(((double)inReviewCount / denom) * 100);
+                        int pctShortlisted = (int)Math.Round(((double)shortlistedCount / denom) * 100);
+                        int otherCount = totalApplications - inReviewCount - shortlistedCount;
+                        if (otherCount < 0) { otherCount = 0; }
+                        int pctOther = (int)Math.Round(((double)otherCount / denom) * 100);
+
+                        if (totalApplications == 0)
+                        {
+                            pctInReview = 0;
+                            pctShortlisted = 0;
+                            pctOther = 0;
+                        }
+                    }
+
+                    <div class="pipeline-bar">
+                        <div class="bar-seg seg-blue" style="width: @(pctInReview > 0 ? pctInReview : (totalApplications > 0 ? 5 : 0))%;" title="In Review: @inReviewCount"></div>
+                        <div class="bar-seg seg-emerald" style="width: @(pctShortlisted > 0 ? pctShortlisted : 0)%;" title="Shortlisted: @shortlistedCount"></div>
+                        <div class="bar-seg seg-gray" style="width: @(pctOther > 0 ? pctOther : 0)%;" title="Other: @otherCount"></div>
+                    </div>
+
+                    <div class="pipeline-stats-row">
+                        <div class="pipeline-stat-box">
+                            <div class="pipeline-stat-label">
+                                <span class="stat-dot" style="background: #2563eb;"></span> In Review
+                            </div>
+                            <span class="pipeline-stat-val">@inReviewCount</span>
+                            <span class="pipeline-stat-pct">(@pctInReview%)</span>
+                        </div>
+
+                        <div class="pipeline-stat-box">
+                            <div class="pipeline-stat-label">
+                                <span class="stat-dot" style="background: #10b981;"></span> Shortlisted
+                            </div>
+                            <span class="pipeline-stat-val">@shortlistedCount</span>
+                            <span class="pipeline-stat-pct">(@pctShortlisted%)</span>
+                        </div>
+
+                        <div class="pipeline-stat-box">
+                            <div class="pipeline-stat-label">
+                                <span class="stat-dot" style="background: #94a3b8;"></span> Total Tracked
+                            </div>
+                            <span class="pipeline-stat-val">@totalApplications</span>
+                        </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Right Sidebar Column: Recruiter Tips & Platform Guidelines -->
-            <div class="col-md-4">
+            <!-- RIGHT COLUMN: Company Identity & Recruiter Resources -->
+            <div class="col-md-4 col-sm-12">
                 
-                <div class="dash-card">
-                    <div class="dash-card-header">
-                        <h3><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> Hiring Pro-Tips</h3>
+                <!-- Company Identity Profile -->
+                <div class="content-card profile-center-box">
+                    <div class="profile-avatar-large">
+                        @(displayName.Length > 0 ? displayName.Substring(0, 1).ToUpper() : "C")
+                    </div>
+                    <h3 class="profile-name">@displayName</h3>
+                    <div class="profile-verified-badge">
+                        <i class="fa-solid fa-circle-check"></i> Verified Employer
                     </div>
 
-                    <div class="recruiter-tip-box">
-                        <h4><i class="fa-solid fa-wand-magic-sparkles"></i> AI Candidate Matching</h4>
-                        <p>Ensure you add specific skills and clear qualifications to boost AI recommendation accuracy by up to 60%.</p>
-                    </div>
-
-                    <div style="margin-top: 18px;">
-                        <h5 style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 10px;">Fast-Track Steps:</h5>
-                        <ul style="padding-left: 18px; font-size: 13px; color: #64748b; line-height: 1.6; margin: 0;">
-                            <li>Publish comprehensive job details.</li>
-                            <li>Review applicant profiles in your dashboard.</li>
-                            <li>Contact shortlisted candidates directly.</li>
-                        </ul>
-                    </div>
+                    <ul class="profile-details-list">
+                        @if (currentCompany != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(currentCompany.CompanyEmail))
+                            {
+                                <li class="profile-detail-row">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>@currentCompany.CompanyEmail</span>
+                                </li>
+                            }
+                            if (!string.IsNullOrWhiteSpace(currentCompany.CompanyPhone))
+                            {
+                                <li class="profile-detail-row">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <span>@currentCompany.CompanyPhone</span>
+                                </li>
+                            }
+                            if (!string.IsNullOrWhiteSpace(currentCompany.CompanyAddress))
+                            {
+                                <li class="profile-detail-row">
+                                    <i class="fa-solid fa-location-pin"></i>
+                                    <span>@currentCompany.CompanyAddress</span>
+                                </li>
+                            }
+                        }
+                        <li class="profile-detail-row">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <span>Standard 30-Day Listing Window</span>
+                        </li>
+                    </ul>
                 </div>
 
-                <!-- Recruiter Support Box -->
-                <div class="dash-card" style="background: #f8fafc;">
-                    <div class="dash-card-header">
-                        <h3><i class="fa-solid fa-headset"></i> Need Assistance?</h3>
+                <!-- Recruiter Advice & Best Practices -->
+                <div class="content-card" style="padding: 20px;">
+                    <div class="pro-tip-panel">
+                        <div class="pro-tip-head">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Matching Recommendation
+                        </div>
+                        <p class="pro-tip-desc">
+                            Job postings with <strong>5+ granular skill tags</strong> receive <strong>65% higher match relevance</strong> on JobNest.
+                        </p>
                     </div>
-                    <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
-                        Our dedicated recruiter support team is here to assist with talent acquisition and posting queries.
-                    </p>
-                    <a href="mailto:recruiter-support@jobnest.com" class="btn btn-default btn-block" style="font-weight: 600; color: #185adb; border-color: #cbd5e1; background: #ffffff;">
-                        <i class="fa-solid fa-envelope"></i> Contact Recruiter Support
+
+                    <h5 style="font-size: 13px; font-weight: 700; color: var(--text-title); margin: 0 0 8px 0;">
+                        Recruiter Best Practices:
+                    </h5>
+                    <ul style="padding-left: 18px; font-size: 12px; color: var(--text-muted); line-height: 1.6; margin: 0 0 16px 0;">
+                        <li>Specify exact required qualifications.</li>
+                        <li>Evaluate incoming resumes within 48 hours.</li>
+                        <li>Update candidate status to Shortlisted promptly.</li>
+                    </ul>
+
+                    <a href="mailto:recruiter-support@jobnest.com" class="support-cta-btn">
+                        <i class="fa-solid fa-headset"></i> Contact Talent Support
                     </a>
                 </div>
 
             </div>
+
         </div>
 
     </div>
