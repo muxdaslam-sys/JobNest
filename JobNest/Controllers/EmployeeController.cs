@@ -24,40 +24,47 @@ namespace JobNest.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            DateTime today = DateTime.Today;
+
             var query = from job in db.JobPostings
                         join login in db.UserLogins on job.CompanyId equals login.LoginId
                         join company in db.Companies on login.RegistrationId equals company.CompanyId
-                        where job.JobStatus == "Active" && job.EndDate >= DateTime.Now
-                        select new JobPostingView
-                        {
-                            JobId = job.JobId,
-                            CompanyId = login.LoginId,
-                            CompanyName = company.CompanyName,
-                            JobTitle = job.JobTitle,
-                            ExperienceRequired = job.ExperienceRequired,
-                            RequiredSkills = job.RequiredSkills,
-                            JobLocation = job.JobLocation,
-                            RequiredQualification = job.RequiredQualification,
-                            Salary = job.Salary,
-                            PostDate = job.PostDate,
-                            EndDate = job.EndDate,
-                            JobStatus = job.JobStatus
-                        };
+                        where job.JobStatus == "Active" && job.EndDate >= today
+                        orderby job.PostDate descending, job.JobId descending
+                        select new { job, login, company };
 
             if (!string.IsNullOrWhiteSpace(searchJobTitle))
             {
-                query = query.Where(x => x.JobTitle.Contains(searchJobTitle) || x.RequiredSkills.Contains(searchJobTitle));
+                string term = searchJobTitle.Trim();
+                query = query.Where(x => x.job.JobTitle.Contains(term) || x.job.RequiredSkills.Contains(term) || x.company.CompanyName.Contains(term));
             }
 
             if (searchExperience.HasValue)
             {
-                query = query.Where(x => x.ExperienceRequired <= searchExperience.Value);
+                query = query.Where(x => x.job.ExperienceRequired <= searchExperience.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(searchLocation))
             {
-                query = query.Where(x => x.JobLocation.Contains(searchLocation));
+                string loc = searchLocation.Trim();
+                query = query.Where(x => x.job.JobLocation.Contains(loc));
             }
+
+            var jobs = query.Select(x => new JobPostingView
+            {
+                JobId = x.job.JobId,
+                CompanyId = x.login.LoginId,
+                CompanyName = x.company.CompanyName,
+                JobTitle = x.job.JobTitle,
+                ExperienceRequired = x.job.ExperienceRequired,
+                RequiredSkills = x.job.RequiredSkills,
+                JobLocation = x.job.JobLocation,
+                RequiredQualification = x.job.RequiredQualification,
+                Salary = x.job.Salary,
+                PostDate = x.job.PostDate,
+                EndDate = x.job.EndDate,
+                JobStatus = x.job.JobStatus
+            }).ToList();
 
             ViewBag.SearchJobTitle = searchJobTitle;
             ViewBag.SearchExperience = searchExperience;
@@ -65,9 +72,9 @@ namespace JobNest.Controllers
 
             ViewBag.AppliedJobIds = db.JobApplications.Where(a => a.EmployeeId == employeeLoginId).Select(a => a.JobId).ToList();
 
-            ViewBag.Jobs = query.ToList();
+            ViewBag.Jobs = jobs;
 
-            return View();
+            return View(jobs);
         }
 
         // GET: AddEmployee
@@ -124,6 +131,12 @@ namespace JobNest.Controllers
         [HttpGet]
         public ActionResult ViewJobDetails(int JobId)
         {
+            int employeeLoginId = Convert.ToInt32(Session["LoginId"]);
+            var LoginType = Session["LoginType"];
+            if (employeeLoginId <= 0 || LoginType == null || LoginType.ToString().ToLower() != "employee")
+            {
+                return RedirectToAction("Login", "Account");
+            }
             var query = from job in db.JobPostings
                         join login in db.UserLogins on job.CompanyId equals login.LoginId
                         join company in db.Companies on login.RegistrationId equals company.CompanyId
