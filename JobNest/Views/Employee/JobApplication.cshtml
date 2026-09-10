@@ -158,15 +158,17 @@
             background-color: #f0fdf4;
         }
 
-        .upload-dropzone input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            z-index: 10;
+        .sr-only-file-input {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+            opacity: 0 !important;
         }
 
         .upload-icon-circle {
@@ -229,27 +231,151 @@
             color: #ffffff;
         }
 
-        .selected-file-display {
-            display: none;
-            margin-top: 14px;
-            padding: 12px 16px;
-            background: #ffffff;
-            border: 1px solid #a7f3d0;
-            border-radius: 8px;
-            align-items: center;
-            justify-content: space-between;
-            color: #064e3b;
-            font-size: 13px;
-            font-weight: 600;
+        /* Dropzone Error State */
+        .upload-dropzone.has-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
         }
 
-        .selected-file-name {
+        .upload-error-msg {
+            display: none;
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .upload-error-msg.show {
+            display: flex;
+        }
+
+        /* Selected Resume Card */
+        .selected-file-display {
+            display: none;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1.5px solid #a7f3d0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08);
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .selected-file-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .file-format-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .file-format-icon-box.pdf {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .file-format-icon-box.word {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .file-meta-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .selected-file-name-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 3px 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        .selected-file-details {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-file-ready {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 8px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .selected-file-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-file-change {
+            background-color: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-file-change:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .btn-file-remove {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-file-remove:hover {
+            color: #ef4444;
+            background-color: #fee2e2;
         }
 
         /* Form Buttons */
@@ -421,7 +547,7 @@
             {
                 <!-- Application Form -->
                 <div class="apply-form-body">
-                    @using (Html.BeginForm("JobApplication", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", id = "applyJobForm" }))
+                    @using (Html.BeginForm("JobApplication", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", id = "applyJobForm", novalidate = "novalidate" }))
                     {
                         @Html.AntiForgeryToken()
 
@@ -431,15 +557,17 @@
                         <!-- Validation Summary -->
                         @Html.ValidationSummary(true, "", new { @class = "text-danger", style = "margin-bottom: 16px; font-weight: 600; font-size: 13px;" })
 
-                        <!-- Upload Zone -->
+                        <!-- Upload Zone Container -->
                         <div style="margin-bottom: 12px;">
                             <label style="display: block; font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 14px;">
                                 Resume / CV Document <span style="color: #ef4444;">*</span>
                             </label>
 
-                            <div class="upload-dropzone" id="dropzoneArea">
-                                <input type="file" name="ResumeFile" id="resumeFileInput" accept=".pdf,.doc,.docx" required onchange="handleFileSelected(this)" />
-                                
+                            <!-- Standalone File Input (Kept directly under form, never placed inside a display:none container so it always serializes to the server) -->
+                            <input type="file" name="ResumeFile" id="resumeFileInput" accept=".pdf,.doc,.docx" class="sr-only-file-input" onchange="handleFileSelected(this)" />
+
+                            <!-- Dropzone (Visible when no file is selected) -->
+                            <div class="upload-dropzone" id="dropzoneArea" onclick="triggerFilePicker()">
                                 <div class="upload-icon-circle">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                 </div>
@@ -454,39 +582,59 @@
                                 </div>
                             </div>
 
-                        <!-- Selected File Preview -->
-                        <div class="selected-file-display" id="selectedFileContainer">
-                            <div class="selected-file-name">
-                                <i class="fa-solid fa-file-lines" style="color: #059669; font-size: 16px;"></i>
-                                <span id="selectedFileNameText">filename.pdf</span>
-                                <span id="selectedFileSizeText" style="color: #64748b; font-weight: 400; font-size: 12px;">(0 KB)</span>
+                            <!-- Selected File Preview Card (Visible when valid file is selected) -->
+                            <div class="selected-file-display" id="selectedFileContainer">
+                                <div class="selected-file-left">
+                                    <div class="file-format-icon-box" id="fileFormatIconBox">
+                                        <i class="fa-solid fa-file-pdf" id="fileFormatIcon"></i>
+                                    </div>
+                                    <div class="file-meta-wrap">
+                                        <h5 class="selected-file-name-text" id="selectedFileNameText">filename.pdf</h5>
+                                        <div class="selected-file-details">
+                                            <span id="selectedFileSizeText">0 KB</span>
+                                            <span class="badge-file-ready">
+                                                <i class="fa-solid fa-circle-check"></i> Ready to Submit
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selected-file-actions">
+                                    <button type="button" class="btn-file-change" onclick="triggerFilePicker()" title="Choose a different file">
+                                        <i class="fa-solid fa-arrow-rotate-right"></i> Change
+                                    </button>
+                                    <button type="button" class="btn-file-remove" onclick="clearSelectedFile()" title="Remove file">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <button type="button" onclick="clearSelectedFile()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;" title="Remove File">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
+
+                            <!-- Styled Inline Validation Message -->
+                            <div class="upload-error-msg" id="uploadErrorMsg">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span id="uploadErrorText">Please select your resume before submitting.</span>
+                            </div>
+
+                            @Html.ValidationMessageFor(m => m.ResumeFile, "", new { @class = "text-danger", style = "display: block; margin-top: 6px; font-weight: 600; font-size: 13px;" })
                         </div>
 
-                        @Html.ValidationMessageFor(m => m.ResumeFile, "", new { @class = "text-danger", style = "display: block; margin-top: 6px; font-weight: 600; font-size: 13px;" })
-                    </div>
+                        <!-- Application Notice -->
+                        <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-top: 18px; font-size: 12px; color: #64748b; display: flex; align-items: flex-start; gap: 10px;">
+                            <i class="fa-solid fa-circle-info" style="color: #059669; font-size: 14px; margin-top: 2px;"></i>
+                            <span>By submitting, your profile details and uploaded resume will be made accessible to the hiring manager for review.</span>
+                        </div>
 
-                    <!-- Application Notice -->
-                    <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-top: 18px; font-size: 12px; color: #64748b; display: flex; align-items: flex-start; gap: 10px;">
-                        <i class="fa-solid fa-circle-info" style="color: #059669; font-size: 14px; margin-top: 2px;"></i>
-                        <span>By submitting, your profile details and uploaded resume will be made accessible to the hiring manager for review.</span>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="form-actions-group">
-                        <a href="@Url.Action("Index", "Employee")" class="btn-cancel-apply">
-                            Cancel
-                        </a>
-                        <button type="submit" class="btn-submit-apply" id="btnSubmitForm">
-                            <i class="fa-solid fa-paper-plane"></i> Submit Application
-                        </button>
-                    </div>
-                }
-            </div>
-        }
+                        <!-- Action Buttons -->
+                        <div class="form-actions-group">
+                            <a href="@Url.Action("Index", "Employee")" class="btn-cancel-apply">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn-submit-apply" id="btnSubmitForm">
+                                <i class="fa-solid fa-paper-plane"></i> Submit Application
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
 
         </div>
     </div>
@@ -494,18 +642,81 @@
 
 @section scripts {
     <script type="text/javascript">
-        function handleFileSelected(input) {
-            if (input.files && input.files[0]) {
-                var file = input.files[0];
-                var name = file.name;
-                var sizeKB = (file.size / 1024).toFixed(1);
-                var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                var sizeDisplay = file.size > 1024 * 1024 ? '(' + sizeMB + ' MB)' : '(' + sizeKB + ' KB)';
+        var validExtensions = ['.pdf', '.doc', '.docx'];
+        var maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-                $('#selectedFileNameText').text(name);
-                $('#selectedFileSizeText').text(sizeDisplay);
-                $('#selectedFileContainer').css('display', 'flex');
+        function showError(msg) {
+            $('#uploadErrorText').text(msg);
+            $('#uploadErrorMsg').addClass('show');
+            $('#dropzoneArea').addClass('has-error');
+        }
+
+        function clearError() {
+            $('#uploadErrorMsg').removeClass('show');
+            $('#dropzoneArea').removeClass('has-error');
+        }
+
+        function triggerFilePicker() {
+            $('#resumeFileInput').trigger('click');
+        }
+
+        function handleFileSelected(input) {
+            clearError();
+
+            if (!input.files || input.files.length === 0) {
+                // If user canceled file dialog and no file is selected, return to dropzone
+                clearSelectedFileState();
+                return;
             }
+
+            var file = input.files[0];
+            var fileName = file.name;
+            var ext = '.' + fileName.split('.').pop().toLowerCase();
+
+            // 1. Client-Side Extension Validation
+            if (validExtensions.indexOf(ext) === -1) {
+                showError('Invalid file format. Please upload a PDF (.pdf) or Word document (.doc, .docx).');
+                input.value = '';
+                clearSelectedFileState();
+                return;
+            }
+
+            // 2. Client-Side File Size Validation (Max 5MB)
+            if (file.size > maxFileSizeBytes) {
+                showError('File size exceeds the 5MB limit. Please upload a smaller document.');
+                input.value = '';
+                clearSelectedFileState();
+                return;
+            }
+
+            // 3. Format Size Display
+            var sizeKB = (file.size / 1024).toFixed(1);
+            var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            var sizeDisplay = file.size > 1024 * 1024 ? sizeMB + ' MB' : sizeKB + ' KB';
+
+            // 4. Format Icon (PDF vs Word)
+            var $iconBox = $('#fileFormatIconBox');
+            var $icon = $('#fileFormatIcon');
+            $iconBox.removeClass('pdf word');
+
+            if (ext === '.pdf') {
+                $iconBox.addClass('pdf');
+                $icon.attr('class', 'fa-solid fa-file-pdf');
+            } else {
+                $iconBox.addClass('word');
+                $icon.attr('class', 'fa-solid fa-file-word');
+            }
+
+            // 5. Update UI Preview Card
+            $('#selectedFileNameText').text(fileName);
+            $('#selectedFileSizeText').text(sizeDisplay);
+            $('#dropzoneArea').hide();
+            $('#selectedFileContainer').css('display', 'flex');
+        }
+
+        function clearSelectedFileState() {
+            $('#selectedFileContainer').hide();
+            $('#dropzoneArea').show();
         }
 
         function clearSelectedFile() {
@@ -513,40 +724,68 @@
             if (input) {
                 input.value = '';
             }
-            $('#selectedFileContainer').hide();
+            clearError();
+            clearSelectedFileState();
         }
 
-        // Handle drag and drop visual state and file selection
-        var dropzone = document.getElementById('dropzoneArea');
-        var fileInput = document.getElementById('resumeFileInput');
-
-        if (dropzone && fileInput) {
-            ['dragenter', 'dragover'].forEach(function (eventName) {
-                dropzone.addEventListener(eventName, function (e) {
+        $(document).ready(function () {
+            // Form Submit Interception & Professional Validation
+            $('#applyJobForm').on('submit', function (e) {
+                var input = document.getElementById('resumeFileInput');
+                if (!input || !input.files || input.files.length === 0) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.add('dragover');
-                }, false);
+                    showError('Please select or upload your resume (PDF or Word) before submitting.');
+                    $('html, body').animate({
+                        scrollTop: $('#dropzoneArea').offset().top - 120
+                    }, 250);
+                    return false;
+                }
+
+                // Show spinner loading state on button without canceling form submission
+                var $btn = $('#btnSubmitForm');
+                $btn.css({
+                    'pointer-events': 'none',
+                    'opacity': '0.75'
+                }).html('<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting Application...');
+                return true;
             });
 
-            ['dragleave'].forEach(function (eventName) {
-                dropzone.addEventListener(eventName, function (e) {
+            // Drag and Drop Handling
+            var dropzone = document.getElementById('dropzoneArea');
+            var fileInput = document.getElementById('resumeFileInput');
+
+            if (dropzone && fileInput) {
+                ['dragenter', 'dragover'].forEach(function (eventName) {
+                    dropzone.addEventListener(eventName, function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('dragover');
+                    }, false);
+                });
+
+                ['dragleave'].forEach(function (eventName) {
+                    dropzone.addEventListener(eventName, function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('dragover');
+                    }, false);
+                });
+
+                dropzone.addEventListener('drop', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     dropzone.classList.remove('dragover');
+
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        try {
+                            fileInput.files = e.dataTransfer.files;
+                        } catch (err) {
+                            console.log('Drop assignment fallback:', err);
+                        }
+                        handleFileSelected(fileInput);
+                    }
                 }, false);
-            });
-
-            dropzone.addEventListener('drop', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.remove('dragover');
-
-                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    fileInput.files = e.dataTransfer.files;
-                    handleFileSelected(fileInput);
-                }
-            }, false);
-        }
+            }
+        });
     </script>
 }
