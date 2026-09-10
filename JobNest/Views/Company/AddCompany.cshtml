@@ -489,13 +489,14 @@
             gap: 10px;
             width: 100% !important;
             box-sizing: border-box !important;
+            align-items: start;
         }
 
         /* Unified Form Controls */
         .field-group-container {
             width: 100% !important;
             box-sizing: border-box !important;
-            margin-bottom: 9px;
+            margin-bottom: 11px;
         }
 
         .field-group-container label {
@@ -522,6 +523,17 @@
             border-color: var(--blue-primary);
             background: #ffffff;
             box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        .field-input-wrapper.has-error,
+        .field-input-wrapper:has(.input-validation-error) {
+            border-color: #ef4444 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .field-input-wrapper.has-error .field-inner-icon,
+        .field-input-wrapper:has(.input-validation-error) .field-inner-icon {
+            color: #ef4444 !important;
         }
 
         .field-inner-icon {
@@ -580,15 +592,36 @@
         }
 
         .field-validation-error {
-            color: #ef4444;
-            font-size: 11px;
+            color: #dc2626;
+            font-size: 11.5px;
             font-weight: 600;
-            margin-top: 2px;
-            display: block;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            line-height: 1.35;
+            padding-left: 2px;
+            animation: fadeInError 0.2s ease-in-out;
         }
 
-        .input-validation-error {
-            border-color: #ef4444 !important;
+        .field-validation-error::before {
+            content: "\f06a";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 11px;
+            margin-top: 1px;
+            flex-shrink: 0;
+            color: #ef4444;
+        }
+
+        .field-validation-valid {
+            display: none !important;
+        }
+
+        @@keyframes fadeInError {
+            from { opacity: 0; transform: translateY(-2px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Error Alert Banner */
@@ -617,22 +650,32 @@
         }
 
         .form-error-toast .toast-title {
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 700;
             color: #991b1b;
             margin-bottom: 2px;
         }
 
-        .form-error-toast .validation-summary-errors ul {
+        .form-error-toast .toast-subtitle {
+            font-size: 12px;
+            color: #b91c1c;
             margin: 0;
-            padding: 0;
-            list-style: none;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .form-error-toast .validation-summary-errors ul {
+            margin: 4px 0 0 0;
+            padding-left: 18px;
+            list-style: disc;
         }
 
         .form-error-toast .validation-summary-errors li {
             font-size: 12px;
             color: #b91c1c;
-            font-weight: 500;
+            font-weight: 600;
+            margin-bottom: 2px;
+            line-height: 1.4;
         }
 
         .btn-close-toast {
@@ -1021,6 +1064,7 @@
                                 </div>
                                 <div class="toast-body">
                                     <div class="toast-title">Registration Incomplete</div>
+                                    <p class="toast-subtitle">Please resolve the highlighted errors below to complete registration.</p>
                                     @Html.ValidationSummary(true, "")
                                 </div>
                                 <button type="button" class="btn-close-toast" id="btnCloseToast" title="Dismiss">&times;</button>
@@ -1198,6 +1242,28 @@
             // Dismiss Error Toast
             $("#btnCloseToast").on("click", function () {
                 $(this).closest(".form-error-toast").slideUp(200);
+            });
+
+            // Synchronize input-validation-error class to .field-input-wrapper
+            function updateInputWrapperState() {
+                $('.field-input-wrapper').each(function () {
+                    var $wrapper = $(this);
+                    var $input = $wrapper.find('.field-custom-control');
+                    if ($input.hasClass('input-validation-error')) {
+                        $wrapper.addClass('has-error');
+                    } else {
+                        $wrapper.removeClass('has-error');
+                    }
+                });
+            }
+
+            // Sync on initial load and upon user interaction / validation
+            updateInputWrapperState();
+            $('#addCompanyForm').on('input change blur', 'input', function () {
+                setTimeout(updateInputWrapperState, 40);
+            });
+            $('#addCompanyForm').on('submit', function () {
+                setTimeout(updateInputWrapperState, 80);
             });
         });
     </script>
