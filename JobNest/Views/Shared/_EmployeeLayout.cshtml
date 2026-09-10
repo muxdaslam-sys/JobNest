@@ -242,7 +242,8 @@
                 </a>
 
                 <ul class="nav-center-links">
-                    <li><a href="@Url.Action("Index", "Employee")" class="active">Browse Jobs</a></li>
+                    <li><a href="@Url.Action("Index", "Employee")" class="@(ViewBag.Title == "Explore Career Opportunities" ? "active" : "")">Browse Jobs</a></li>
+                    <li><a href="@Url.Action("ViewAppliedJobs", "Employee")" class="@(ViewBag.Title == "My Applied Jobs" ? "active" : "")">My Applications</a></li>
                 </ul>
 
                 <div class="nav-actions">
@@ -259,6 +260,11 @@
                             <li>
                                 <a href="@Url.Action("Index", "Employee")">
                                     <i class="fa-solid fa-briefcase" style="color: var(--primary);"></i> Browse Jobs
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("ViewAppliedJobs", "Employee")">
+                                    <i class="fa-solid fa-file-lines" style="color: var(--primary);"></i> My Applications
                                 </a>
                             </li>
                             <li role="separator" class="divider" style="margin: 6px 0;"></li>

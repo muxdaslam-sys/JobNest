@@ -2,7 +2,9 @@
 
 @{
     Layout = null;
-    ViewBag.Title = "Employer Registration - JobNest Recruiter";
+    ViewBag.Title = "Employer Registration | JobNest - Hire Top Talent";
+    bool isSuccess = IsPost && ViewData.ModelState.IsValid;
+    bool hasErrors = IsPost && !ViewData.ModelState.IsValid;
 }
 
 <!DOCTYPE html>
@@ -12,797 +14,1208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title</title>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- Bootstrap CSS -->
     @Styles.Render("~/Content/css")
 
     <style>
+        /* ========================================
+           DESIGN TOKENS & SYSTEM VARIABLES
+           ======================================== */
+        :root {
+            --blue-primary: #185adb;
+            --blue-hover: #1041a3;
+            --blue-light: #eff6ff;
+            --blue-border: #bfdbfe;
+            --blue-glow: rgba(24, 90, 219, 0.16);
+            --blue-stat: #60a5fa;
+            --blue-grad: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+            --blue-shadow: rgba(24, 90, 219, 0.3);
+
+            --emerald: #059669;
+            --emerald-light: #ecfdf5;
+
+            --dark-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --border-subtle: #e2e8f0;
+            --bg-canvas: #f8fafc;
+        }
+
         * {
             box-sizing: border-box;
         }
 
+        input, select, textarea {
+            max-width: 100% !important;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+            background-color: #ffffff;
+            color: var(--text-body);
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ========================================
+           SPLIT SCREEN ARCHITECTURE
+           ======================================== */
+        .company-split-layout {
             display: flex;
-            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
         }
 
-        /* Top Employer Header Bar */
-        .recruiter-header {
-            background-color: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 16px 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .recruiter-header .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e3a8a;
-            text-decoration: none;
-        }
-
-        .recruiter-header .badge-recruiter {
-            background-color: #2563eb;
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
-            font-size: 14px;
-            color: #4b5563;
-        }
-
-        .btn-login-outline {
-            border: 1px solid #2563eb;
-            color: #2563eb;
-            background: transparent;
-            font-weight: 600;
-            padding: 7px 18px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .btn-login-outline:hover {
-            background-color: #2563eb;
-            color: #ffffff;
-            text-decoration: none;
-        }
-
-        /* Main Section */
-        .main-wrapper {
-            flex: 1;
-            padding: 40px 0 60px 0;
-        }
-
-        /* Flexbox Equal Height Grid */
-        .equal-height-row {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .equal-height-col {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Recruiter Banner/Card Left Side */
-        .perks-card {
-            background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 100%);
-            color: #ffffff;
-            border-radius: 16px;
-            padding: 36px 32px;
-            height: 100%;
-            flex: 1;
-            box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25);
+        /* ========================================
+           LEFT PANEL: Dark Narrative Brand Hub
+           ======================================== */
+        .brand-narrative-panel {
+            width: 50%;
+            min-height: 100vh;
+            background: linear-gradient(165deg, #0b1120 0%, #111a33 55%, #0d152a 100%);
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding: 36px 48px;
+            z-index: 1;
         }
 
-        .perks-card h2 {
-            font-size: 26px;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #ffffff;
-            line-height: 1.3;
+        .brand-narrative-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 26px 26px;
+            z-index: 1;
+            pointer-events: none;
         }
 
-        .perks-card p.subtitle {
-            color: #93c5fd;
-            font-size: 14px;
-            margin-bottom: 24px;
+        /* Ambient Glowing Blue Orbs */
+        .ambient-mesh-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(85px);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .perk-item {
+        .ambient-mesh-orb-1 {
+            width: 420px;
+            height: 420px;
+            top: -90px;
+            right: -60px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.45) 0%, transparent 70%);
+            animation: floatOrb1 14s ease-in-out infinite alternate;
+        }
+
+        .ambient-mesh-orb-2 {
+            width: 360px;
+            height: 360px;
+            bottom: -50px;
+            left: -40px;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.3) 0%, transparent 70%);
+            animation: floatOrb2 11s ease-in-out infinite alternate;
+        }
+
+        @@keyframes floatOrb1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(25px, -20px) scale(1.1); }
+        }
+
+        @@keyframes floatOrb2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-20px, -25px) scale(1.08); }
+        }
+
+        /* Top Brand Bar */
+        .brand-top-header {
+            position: relative;
+            z-index: 2;
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            margin-bottom: 18px;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
         }
 
-        .perk-icon {
+        .brand-logo-unit {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none !important;
+        }
+
+        .brand-logo-icon-box {
             width: 40px;
             height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            color: #60a5fa;
-            flex-shrink: 0;
-        }
-
-        .perk-content h4 {
-            font-size: 15px;
-            font-weight: 600;
-            margin: 0 0 3px 0;
             color: #ffffff;
+            font-size: 18px;
+            box-shadow: 0 4px 14px rgba(24, 90, 219, 0.35);
         }
 
-        .perk-content p {
-            font-size: 13px;
-            color: #cbd5e1;
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        /* 3-Step Hiring Process Timeline */
-        .hiring-steps-box {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 18px 20px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .hiring-steps-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #38bdf8;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .step-timeline {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .step-node {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            z-index: 1;
-            flex: 1;
-        }
-
-        .step-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #2563eb;
+        .brand-logo-title {
+            font-size: 23px;
+            font-weight: 800;
             color: #ffffff;
-            font-size: 13px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 6px;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+            letter-spacing: -0.5px;
         }
 
-        .step-circle.active {
-            background-color: #38bdf8;
-            color: #0f172a;
+        .brand-logo-title span {
+            color: var(--blue-stat);
         }
 
-        .step-label {
-            font-size: 11px;
-            color: #e2e8f0;
-            font-weight: 500;
-        }
-
-        /* Testimonial Quote Card */
-        .testimonial-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-left: 3px solid #38bdf8;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 20px;
-        }
-
-        .testimonial-card p {
-            font-size: 13px;
-            font-style: italic;
-            color: #e2e8f0;
-            margin: 0 0 8px 0;
-            line-height: 1.4;
-        }
-
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .author-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: #38bdf8;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .author-info h5 {
-            font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
-            margin: 0;
-        }
-
-        .author-info span {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-
-        .stat-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            padding-top: 18px;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-badge-group {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            justify-content: space-between;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 10px 14px;
-            flex: 1;
-            text-align: center;
-        }
-
-        .stat-item .num {
-            font-weight: 700;
-            font-size: 16px;
-            color: #38bdf8;
-            display: block;
-        }
-
-        .stat-item .label {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-
-        /* Registration Form Right Side */
-        .form-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 36px 32px;
-            height: 100%;
-            flex: 1;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .form-card-header {
-            margin-bottom: 24px;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 16px;
-        }
-
-        .form-card-header h3 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #111827;
-            margin: 0 0 6px 0;
-        }
-
-        .form-card-header p {
-            font-size: 14px;
-            color: #6b7280;
-            margin: 0;
-        }
-
-        .form-section-title {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #2563eb;
-            margin-top: 20px;
-            margin-bottom: 16px;
-            display: flex;
+        .brand-status-badge {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .form-section-title::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background-color: #eff6ff;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            font-size: 13px;
-            color: #374151;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .input-group-addon {
-            background-color: #f9fafb;
-            border-color: #d1d5db;
-            color: #6b7280;
-            min-width: 42px;
-        }
-
-        .form-control {
-            height: 42px;
-            border-radius: 8px;
-            border-color: #d1d5db;
-            box-shadow: none;
-            font-size: 14px;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        }
-
-        textarea.form-control {
-            height: auto;
-        }
-
-        .form-control:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        .btn-submit-recruiter {
-            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
             font-weight: 600;
-            font-size: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            width: 100%;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-            transition: all 0.2s ease;
+            color: #cbd5e1;
+            backdrop-filter: blur(8px);
         }
 
-        .btn-submit-recruiter:hover {
-            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
-            color: #ffffff;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
-        }
-
-        .btn-reset-custom {
-            background-color: #f3f4f6;
-            color: #4b5563;
-            border: 1px solid #d1d5db;
-            font-weight: 500;
-            border-radius: 8px;
-            padding: 10px 18px;
-        }
-
-        .btn-reset-custom:hover {
-            background-color: #e5e7eb;
-            color: #1f2937;
-        }
-
-        /* Custom Success Alert Banner */
-        .registration-success-alert {
-            background-color: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            border-left: 5px solid #059669;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
-        }
-
-        .success-flex-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .success-info {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .success-icon-badge {
-            width: 44px;
-            height: 44px;
+        .status-dot-blue {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background-color: #d1fae5;
-            color: #059669;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
+            background-color: var(--blue-stat);
+            box-shadow: 0 0 8px var(--blue-stat);
         }
 
-        .success-text h4 {
-            margin: 0 0 4px 0;
-            font-weight: 700;
-            font-size: 16px;
-            color: #065f46;
+        /* Center Narrative */
+        .brand-narrative-content {
+            position: relative;
+            z-index: 2;
+            margin: auto 0;
+            padding: 16px 0;
+            max-width: 480px;
+            width: 100%;
         }
 
-        .success-text p {
-            margin: 0;
-            font-size: 14px;
-            color: #047857;
-        }
-
-        .btn-dashboard-login {
-            background-color: #059669;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 9px 18px;
-            border-radius: 6px;
-            text-decoration: none;
+        .narrative-portal-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background-color 0.2s ease;
+            background: rgba(24, 90, 219, 0.18);
+            color: var(--blue-stat);
+            border: 1px solid rgba(24, 90, 219, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
         }
 
-        .btn-dashboard-login:hover {
-            background-color: #047857;
+        .narrative-headline {
+            font-size: 28px;
+            font-weight: 900;
             color: #ffffff;
-            text-decoration: none;
+            line-height: 1.22;
+            letter-spacing: -0.8px;
+            margin: 0 0 10px 0;
         }
 
-        .footer-minimal {
-            background-color: #ffffff;
-            border-top: 1px solid #e5e7eb;
-            padding: 20px 0;
-            text-size: 13px;
-            color: #6b7280;
+        .narrative-subtext {
+            font-size: 13.5px;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin: 0 0 20px 0;
+        }
+
+        /* 3 Value Pillars */
+        .hiring-pillars-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .hiring-pillar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 11px;
+            padding: 10px 14px;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .hiring-pillar-row:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(3px);
+        }
+
+        .pillar-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(24, 90, 219, 0.22);
+            color: var(--blue-stat);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .pillar-details h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin: 0 0 1px 0;
+        }
+
+        .pillar-details p {
+            font-size: 11.5px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        /* Metric Highlights */
+        .hiring-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .metric-card-unit {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(24, 90, 219, 0.2);
+            border-radius: 11px;
+            padding: 10px 8px;
             text-align: center;
+            backdrop-filter: blur(6px);
         }
 
-        @@media (max-width: 991px) {
-            .equal-height-row {
-                display: block;
+        .metric-big-num {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--blue-stat);
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+
+        .metric-label-text {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+        }
+
+        /* Left Bottom Bar */
+        .brand-bottom-footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 20px;
+        }
+
+        .brand-bottom-footer a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .brand-bottom-footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        /* ========================================
+           RIGHT PANEL: Form & Action Canvas
+           ======================================== */
+        .form-canvas-panel {
+            width: 50%;
+            min-height: 100vh;
+            background-color: var(--bg-canvas);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 36px 48px;
+            position: relative;
+        }
+
+        /* Top Bar: Nav to Login */
+        .canvas-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            height: 44px;
+            gap: 12px;
+        }
+
+        .top-account-query {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .btn-link-signin {
+            color: var(--blue-primary);
+            background: #ffffff;
+            border: 1.5px solid var(--blue-border);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-link-signin:hover {
+            background: var(--blue-light);
+            border-color: var(--blue-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px var(--blue-glow);
+        }
+
+        /* Form Card Centering */
+        .form-card-centering-wrap {
+            margin: auto 0;
+            display: flex;
+            justify-content: center;
+            padding: 16px 0;
+        }
+
+        .company-auth-card {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid rgba(191, 219, 254, 0.85);
+            box-shadow: 0 16px 36px -12px rgba(24, 90, 219, 0.08), 
+                        0 1px 3px rgba(0, 0, 0, 0.02);
+            padding: 24px 28px 20px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .company-card-header {
+            margin-bottom: 14px;
+        }
+
+        .company-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: var(--blue-light);
+            color: var(--blue-primary);
+            border: 1px solid var(--blue-border);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .company-card-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--dark-heading);
+            letter-spacing: -0.5px;
+            margin: 0 0 3px 0;
+        }
+
+        .company-card-desc {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Form Section Demarcation */
+        .form-fieldset-legend {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--blue-primary);
+            margin: 10px 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-fieldset-legend::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: #f1f5f9;
+        }
+
+        /* Form Grid Pair (Email/Phone & Username/Password) */
+        .form-grid-pair {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            align-items: start;
+        }
+
+        /* Unified Form Controls */
+        .field-group-container {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin-bottom: 11px;
+        }
+
+        .field-group-container label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--dark-heading);
+            margin: 0 0 4px 0;
+            display: block;
+        }
+
+        .field-input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 9px;
+            background: #f8fafc;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .field-input-wrapper:focus-within {
+            border-color: var(--blue-primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        .field-input-wrapper.has-error,
+        .field-input-wrapper:has(.input-validation-error) {
+            border-color: #ef4444 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .field-input-wrapper.has-error .field-inner-icon,
+        .field-input-wrapper:has(.input-validation-error) .field-inner-icon {
+            color: #ef4444 !important;
+        }
+
+        .field-inner-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            flex-shrink: 0;
+            color: #94a3b8;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .field-input-wrapper:focus-within .field-inner-icon {
+            color: var(--blue-primary);
+        }
+
+        .field-custom-control {
+            flex: 1;
+            min-width: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            border: none !important;
+            background: transparent !important;
+            padding: 9px 10px 9px 0 !important;
+            font-size: 13px;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--dark-heading);
+            outline: none !important;
+            box-shadow: none !important;
+            height: auto !important;
+        }
+
+        .field-custom-control::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .btn-inline-eye-toggle {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 6px 10px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-inline-eye-toggle:hover {
+            color: var(--dark-heading);
+        }
+
+        .field-validation-error {
+            color: #dc2626;
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            line-height: 1.35;
+            padding-left: 2px;
+            animation: fadeInError 0.2s ease-in-out;
+        }
+
+        .field-validation-error::before {
+            content: "\f06a";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 11px;
+            margin-top: 1px;
+            flex-shrink: 0;
+            color: #ef4444;
+        }
+
+        .field-validation-valid {
+            display: none !important;
+        }
+
+        @@keyframes fadeInError {
+            from { opacity: 0; transform: translateY(-2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Error Alert Banner */
+        .form-error-toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            animation: shakeError 0.35s ease-in-out;
+        }
+
+        .form-error-toast .toast-icon {
+            color: #dc2626;
+            font-size: 15px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .form-error-toast .toast-body {
+            flex: 1;
+        }
+
+        .form-error-toast .toast-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #991b1b;
+            margin-bottom: 2px;
+        }
+
+        .form-error-toast .toast-subtitle {
+            font-size: 12px;
+            color: #b91c1c;
+            margin: 0;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .form-error-toast .validation-summary-errors ul {
+            margin: 4px 0 0 0;
+            padding-left: 18px;
+            list-style: disc;
+        }
+
+        .form-error-toast .validation-summary-errors li {
+            font-size: 12px;
+            color: #b91c1c;
+            font-weight: 600;
+            margin-bottom: 2px;
+            line-height: 1.4;
+        }
+
+        .btn-close-toast {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .btn-close-toast:hover { color: #475569; }
+
+        @@keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+
+        /* Submit Action Button */
+        .btn-submit-company {
+            width: 100%;
+            padding: 11px 18px;
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 8px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--blue-grad);
+            box-shadow: 0 5px 15px var(--blue-shadow);
+        }
+
+        .btn-submit-company:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 7px 20px var(--blue-shadow);
+            filter: brightness(1.05);
+        }
+
+        .btn-submit-company:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit-company i {
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit-company:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Terms & Candidate Link */
+        .form-legal-footnote {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .candidate-switch-strip {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .link-switch-candidate {
+            color: var(--emerald);
+            font-weight: 700;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .link-switch-candidate:hover {
+            color: #047857;
+            text-decoration: underline !important;
+        }
+
+        /* Success Celebration State */
+        .celebration-success-card {
+            text-align: center;
+            padding: 16px 8px;
+            animation: fadeInSuccess 0.35s ease;
+        }
+
+        .celebration-icon-disc {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--blue-light);
+            border: 2px solid var(--blue-border);
+            color: var(--blue-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px var(--blue-glow);
+        }
+
+        .celebration-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--dark-heading);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .celebration-desc {
+            font-size: 14px;
+            color: var(--text-body);
+            line-height: 1.55;
+            max-width: 420px;
+            margin: 0 auto 24px auto;
+        }
+
+        .celebration-actions-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        .btn-celebration-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 20px;
+            background: var(--blue-grad);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 14.5px;
+            border-radius: 12px;
+            text-decoration: none !important;
+            box-shadow: 0 6px 18px var(--blue-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-celebration-login:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px var(--blue-shadow);
+            filter: brightness(1.05);
+        }
+
+        .btn-celebration-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            background: #ffffff;
+            color: var(--text-body) !important;
+            border: 1.5px solid var(--border-subtle);
+            font-weight: 600;
+            font-size: 13px;
+            border-radius: 10px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+        }
+
+        .btn-celebration-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: var(--dark-heading) !important;
+        }
+
+        @@keyframes fadeInSuccess {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Canvas Bottom Bar */
+        .canvas-bottom-bar {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 16px;
+        }
+
+        /* ========================================
+           RESPONSIVE BREAKPOINTS
+           ======================================== */
+        @@media (max-width: 1024px) {
+            .brand-narrative-panel { width: 50%; padding: 30px; }
+            .form-canvas-panel { width: 50%; padding: 30px; }
+            .narrative-headline { font-size: 28px; }
+        }
+
+        @@media (max-width: 860px) {
+            .company-split-layout { flex-direction: column; }
+            .brand-narrative-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 24px 20px;
             }
-            .perks-card {
-                margin-bottom: 30px;
+            .brand-narrative-content { display: none; }
+            .brand-bottom-footer { display: none; }
+            .form-canvas-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 24px 20px 36px;
             }
+            .company-auth-card { padding: 28px 22px; }
+        }
+
+        @@media (max-width: 480px) {
+            .company-card-title { font-size: 22px; }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- Header (No Site Navigation Links) -->
-    <header class="recruiter-header">
-        <div class="container">
-            <div class="row style-flex-header" style="display: flex; align-items: center; justify-content: space-between;">
-                <div class="col-xs-6">
-                    <a href="@Url.Action("Index", "Home")" class="brand-logo">
-                        <i class="fa-solid fa-briefcase text-primary"></i>
-                        <span>Job<span style="color:#2563eb;">Nest</span></span>
-                        <span class="badge-recruiter">Recruiter</span>
-                    </a>
-                </div>
-                <div class="col-xs-6 header-actions">
-                    <span class="hidden-xs">Already registered?</span>
-                    <a href="@Url.Action("Login", "Account")" class="btn-login-outline">
-                        <i class="fa-solid fa-right-to-bracket"></i> Login
-                    </a>
+    <div class="company-split-layout">
+
+        <!-- ==========================================
+             LEFT PANEL: Brand Narrative & Sourcing Perks
+             ========================================== -->
+        <aside class="brand-narrative-panel">
+            <!-- Glowing Ambient Mesh Blobs -->
+            <div class="ambient-mesh-orb ambient-mesh-orb-1"></div>
+            <div class="ambient-mesh-orb ambient-mesh-orb-2"></div>
+
+            <!-- Top Header: Logo & Recruiter Status -->
+            <div class="brand-top-header">
+                <a href="@Url.Action("Index", "Home")" class="brand-logo-unit">
+                    <div class="brand-logo-icon-box">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <span class="brand-logo-title">Job<span>Nest</span></span>
+                </a>
+                <div class="brand-status-badge">
+                    <span class="status-dot-blue"></span>
+                    <span>Employer Network</span>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- Main Container -->
-    <div class="main-wrapper">
-        <div class="container">
+            <!-- Center Narrative Content -->
+            <div class="brand-narrative-content">
+                <div class="narrative-portal-pill">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                    <span>Corporate Recruitment Suite</span>
+                </div>
 
-            <!-- Success Alert Banner (Displayed only after successful POST registration) -->
-            @if (IsPost && ViewData.ModelState.IsValid)
-            {
-                <div class="registration-success-alert">
-                    <div class="success-flex-content">
-                        <div class="success-info">
-                            <div class="success-icon-badge">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                            <div class="success-text">
-                                <h4>Company Registered Successfully!</h4>
-                                <p>Company is registered successfully. Please login to your dashboard.</p>
-                            </div>
+                <h1 class="narrative-headline">Scale Your Team with Top Industry Talent</h1>
+                <p class="narrative-subtext">
+                    Join over 500+ top enterprises and hiring managers sourcing pre-vetted professionals. Post openings, manage pipelines, and hire faster.
+                </p>
+
+                <!-- Value Pillars -->
+                <div class="hiring-pillars-stack">
+                    <div class="hiring-pillar-row">
+                        <div class="pillar-icon-wrap">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
                         </div>
-                        <div>
-                            <a href="@Url.Action("Login", "Login")" class="btn-dashboard-login">
-                                <i class="fa-solid fa-gauge-high"></i> Login to Dashboard
-                            </a>
+                        <div class="pillar-details">
+                            <h4>Targeted Candidate Sourcing</h4>
+                            <p>Filter pre-vetted talent profiles matching your exact skill criteria</p>
                         </div>
                     </div>
-                </div>
-            }
-
-            <div class="row equal-height-row">
-                <!-- Left Column: Recruiter Benefits + 3-Step Timeline + Testimonial -->
-                <div class="col-md-6 equal-height-col">
-                    <div class="perks-card">
-                        <div>
-                            <h2>Hire Top Talent Faster with JobNest</h2>
-                            <p class="subtitle">Join thousands of leading companies hiring engineers, managers, and specialists.</p>
-
-                            <!-- Benefits List -->
-                            <div class="perk-item">
-                                <div class="perk-icon">
-                                    <i class="fa-solid fa-users-viewfinder"></i>
-                                </div>
-                                <div class="perk-content">
-                                    <h4>Access Millions of Resumes</h4>
-                                    <p>Search active candidates with verified contact details and skill assessments.</p>
-                                </div>
-                            </div>
-
-                            <div class="perk-item">
-                                <div class="perk-icon">
-                                    <i class="fa-solid fa-bolt"></i>
-                                </div>
-                                <div class="perk-content">
-                                    <h4>Instant Job Postings</h4>
-                                    <p>Publish job openings within 2 minutes and start receiving qualified applications.</p>
-                                </div>
-                            </div>
-
-                            <div class="perk-item">
-                                <div class="perk-icon">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                </div>
-                                <div class="perk-content">
-                                    <h4>Smart AI Matching</h4>
-                                    <p>Automated candidate recommendations tailored specifically to your job requirements.</p>
-                                </div>
-                            </div>
-
-                            <!-- 3-Step Hiring Process Box -->
-                            <div class="hiring-steps-box">
-                                <div class="hiring-steps-title">
-                                    <i class="fa-solid fa-route"></i> Simple 3-Step Hiring Process
-                                </div>
-                                <div class="step-timeline">
-                                    <div class="step-node">
-                                        <div class="step-circle active">1</div>
-                                        <span class="step-label">Register</span>
-                                    </div>
-                                    <div class="step-node">
-                                        <div class="step-circle">2</div>
-                                        <span class="step-label">Post Job</span>
-                                    </div>
-                                    <div class="step-node">
-                                        <div class="step-circle">3</div>
-                                        <span class="step-label">Hire Talent</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Testimonial Quote -->
-                            <div class="testimonial-card">
-                                <p>"JobNest helped us hire 15 senior developers in under 3 weeks. The candidate quality and matching speed are exceptional!"</p>
-                                <div class="testimonial-author">
-                                    <div class="author-avatar">SJ</div>
-                                    <div class="author-info">
-                                        <h5>Sarah Jenkins</h5>
-                                        <span>Head of Talent, TechCorp</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="hiring-pillar-row">
+                        <div class="pillar-icon-wrap">
+                            <i class="fa-solid fa-bolt-lightning"></i>
                         </div>
-
-                        <!-- Statistics Footer -->
-                        <div class="stat-footer">
-                            <div class="stat-badge-group">
-                                <div class="stat-item">
-                                    <span class="num">50K+</span>
-                                    <span class="label">Companies</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="num">2.5M+</span>
-                                    <span class="label">Job Seekers</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="num">98%</span>
-                                    <span class="label">Hiring Rate</span>
-                                </div>
-                            </div>
+                        <div class="pillar-details">
+                            <h4>Instant Job Post Distribution</h4>
+                            <p>Publish job openings with immediate visibility to 25,000+ candidates</p>
+                        </div>
+                    </div>
+                    <div class="hiring-pillar-row">
+                        <div class="pillar-icon-wrap">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <div class="pillar-details">
+                            <h4>Unified Candidate Pipeline</h4>
+                            <p>Review resumes, track statuses, and coordinate interviews in one place</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Registration Form -->
-                <div class="col-md-6 equal-height-col">
-                    <div class="form-card">
-                        <div>
-                            <div class="form-card-header">
-                                <h3>Create Company Account</h3>
-                                <p>Register your company details to start posting jobs and hiring candidates.</p>
-                            </div>
-
-                            @using (Html.BeginForm("AddCompany", "Company", FormMethod.Post, new { role = "form", id = "addCompanyForm" }))
-                            {
-                                @Html.AntiForgeryToken()
-
-                                <!-- Error Alert Box (Only displayed when there are actual validation errors after POST) -->
-                                if (IsPost && !ViewData.ModelState.IsValid)
-                                {
-                                    <div class="alert alert-danger" style="border-radius: 8px; font-size: 14px; margin-bottom: 20px;">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> <strong>Registration Error:</strong> Please fill the details below and try again.
-                                        @Html.ValidationSummary(true, "", new { @class = "text-danger", style = "margin-top: 8px; margin-bottom: 0;" })
-                                    </div>
-                                }
-
-                                <!-- Company Information Section -->
-                                <div class="form-section-title">
-                                    <i class="fa-solid fa-building"></i> Company Information
-                                </div>
-
-                                <div class="form-group">
-                                    @Html.LabelFor(model => model.CompanyName, "Company Name *")
-                                    <div class="input-group">
-                                        <span class="input-group-addon"><i class="fa-solid fa-building-user"></i></span>
-                                        @Html.TextBoxFor(model => model.CompanyName, new { @class = "form-control", placeholder = "e.g. Acme Technologies Inc." })
-                                    </div>
-                                    @Html.ValidationMessageFor(model => model.CompanyName, "", new { @class = "text-danger small" })
-                                </div>
-
-                                <div class="form-group">
-                                    @Html.LabelFor(model => model.CompanyAddress, "Company Address *")
-                                    <div class="input-group">
-                                        <span class="input-group-addon"><i class="fa-solid fa-location-dot"></i></span>
-                                        @Html.TextAreaFor(model => model.CompanyAddress, new { @class = "form-control", rows = "2", placeholder = "Enter street, city, state & zip code" })
-                                    </div>
-                                    @Html.ValidationMessageFor(model => model.CompanyAddress, "", new { @class = "text-danger small" })
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            @Html.LabelFor(model => model.CompanyEmail, "Official Email *")
-                                            <div class="input-group">
-                                                <span class="input-group-addon"><i class="fa-solid fa-envelope"></i></span>
-                                                @Html.TextBoxFor(model => model.CompanyEmail, new { @class = "form-control", type = "email", placeholder = "hr@company.com" })
-                                            </div>
-                                            @Html.ValidationMessageFor(model => model.CompanyEmail, "", new { @class = "text-danger small" })
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            @Html.LabelFor(model => model.CompanyPhone, "Contact Phone *")
-                                            <div class="input-group">
-                                                <span class="input-group-addon"><i class="fa-solid fa-phone"></i></span>
-                                                @Html.TextBoxFor(model => model.CompanyPhone, new { @class = "form-control", placeholder = "+1 (555) 000-0000" })
-                                            </div>
-                                            @Html.ValidationMessageFor(model => model.CompanyPhone, "", new { @class = "text-danger small" })
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Login Credentials Section -->
-                                <div class="form-section-title">
-                                    <i class="fa-solid fa-shield-halved"></i> Login Credentials
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            @Html.LabelFor(model => model.Username, "Recruiter Username *")
-                                            <div class="input-group">
-                                                <span class="input-group-addon"><i class="fa-solid fa-user"></i></span>
-                                                @Html.TextBoxFor(model => model.Username, new { @class = "form-control", placeholder = "Choose username" })
-                                            </div>
-                                            @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger small" })
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            @Html.LabelFor(model => model.Password, "Account Password *")
-                                            <div class="input-group">
-                                                <span class="input-group-addon"><i class="fa-solid fa-lock"></i></span>
-                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", id = "companyPassword", placeholder = "Min. 6 characters" })
-                                                <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default" id="togglePasswordBtn" title="Show/Hide Password" style="height: 42px; border-color: #d1d5db;">
-                                                        <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
-                                                    </button>
-                                                </span>
-                                            </div>
-                                            @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger small" })
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style="margin-top: 25px; display: flex; gap: 12px; align-items: center;">
-                                    <button type="submit" class="btn btn-submit-recruiter">
-                                        <i class="fa-solid fa-paper-plane"></i> Register Company &amp; Start Hiring
-                                    </button>
-                                    <button type="button" class="btn btn-reset-custom" title="Reset Form">
-                                        <i class="fa-solid fa-rotate-left"></i>
-                                    </button>
-                                </div>
-
-                                <p style="margin-top: 16px; font-size: 12px; color: #9ca3af; text-align: center;">
-                                    By clicking "Register Company", you agree to JobNest's <a href="#" style="color: #2563eb;">Employer Terms</a> &amp; <a href="#" style="color: #2563eb;">Privacy Policy</a>.
-                                </p>
-                            }
-                        </div>
+                <!-- Metrics Grid -->
+                <div class="hiring-metrics-grid">
+                    <div class="metric-card-unit">
+                        <div class="metric-big-num">500+</div>
+                        <div class="metric-label-text">Hiring Firms</div>
+                    </div>
+                    <div class="metric-card-unit">
+                        <div class="metric-big-num">25K+</div>
+                        <div class="metric-label-text">Professionals</div>
+                    </div>
+                    <div class="metric-card-unit">
+                        <div class="metric-big-num">98%</div>
+                        <div class="metric-label-text">Hiring Rate</div>
                     </div>
                 </div>
             </div>
 
-        </div>
+            <!-- Bottom Left Footer -->
+            <div class="brand-bottom-footer">
+                <span>&copy; @DateTime.Now.Year JobNest Technologies.</span>
+                <a href="mailto:support@jobnest.com">support@jobnest.com</a>
+            </div>
+        </aside>
+
+        <!-- ==========================================
+             RIGHT PANEL: Form Canvas & Actions
+             ========================================== -->
+        <main class="form-canvas-panel">
+
+            <!-- Top Bar: Navigation to Sign In -->
+            <div class="canvas-top-bar">
+                <span class="top-account-query hidden-xs">Already have an account?</span>
+                <a href="@Url.Action("Login", "Account")" class="btn-link-signin">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+                </a>
+            </div>
+
+            <!-- Card Centering Wrapper -->
+            <div class="form-card-centering-wrap">
+                <div class="company-auth-card">
+
+                    @if (isSuccess)
+                    {
+                        <!-- ==========================================
+                             SUCCESS STATE CELEBRATION VIEW
+                             ========================================== -->
+                        <div class="celebration-success-card">
+                            <div class="celebration-icon-disc">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <h2 class="celebration-title">Company Account Created!</h2>
+                            <p class="celebration-desc">
+                                Your corporate recruiter profile has been registered successfully. Sign in to your dashboard to begin publishing job openings and reviewing applicants.
+                            </p>
+                            <div class="celebration-actions-group">
+                                <a href="@Url.Action("Login", "Account")" class="btn-celebration-login">
+                                    <span>Sign In to Employer Dashboard</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                                <a href="@Url.Action("AddCompany", "Company")" class="btn-celebration-secondary">
+                                    <i class="fa-solid fa-plus"></i> Register Another Company
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- ==========================================
+                             REGISTRATION FORM VIEW
+                             ========================================== -->
+                        <div class="company-card-header">
+                            <div class="company-badge-pill">
+                                <i class="fa-solid fa-building"></i>
+                                <span>Employer Registration</span>
+                            </div>
+                            <h2 class="company-card-title">Register Your Company</h2>
+                            <p class="company-card-desc">Set up your corporate profile to start publishing job openings.</p>
+                        </div>
+
+                        <!-- General Error Banner -->
+                        if (hasErrors)
+                        {
+                            <div class="form-error-toast" id="errorToast">
+                                <div class="toast-icon">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div class="toast-body">
+                                    <div class="toast-title">Registration Incomplete</div>
+                                    <p class="toast-subtitle">Please resolve the highlighted errors below to complete registration.</p>
+                                    @Html.ValidationSummary(true, "")
+                                </div>
+                                <button type="button" class="btn-close-toast" id="btnCloseToast" title="Dismiss">&times;</button>
+                            </div>
+                        }
+
+                        using (Html.BeginForm("AddCompany", "Company", FormMethod.Post, new { id = "addCompanyForm", role = "form" }))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <!-- 1. Company Information Group -->
+                            <div class="form-fieldset-legend">
+                                <i class="fa-solid fa-building"></i> Company Information
+                            </div>
+
+                            <div class="field-group-container">
+                                @Html.LabelFor(m => m.CompanyName, "Company Name")
+                                <div class="field-input-wrapper">
+                                    <span class="field-inner-icon"><i class="fa-solid fa-building-user"></i></span>
+                                    @Html.TextBoxFor(m => m.CompanyName, new
+                                    {
+                                        @class = "field-custom-control",
+                                        id = "CompanyName",
+                                        placeholder = "e.g. Acme Technologies Inc.",
+                                        autocomplete = "organization"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.CompanyName, "", new { @class = "field-validation-error" })
+                            </div>
+
+                            <div class="field-group-container">
+                                @Html.LabelFor(m => m.CompanyAddress, "Company Location / Address")
+                                <div class="field-input-wrapper">
+                                    <span class="field-inner-icon"><i class="fa-solid fa-location-dot"></i></span>
+                                    @Html.TextBoxFor(m => m.CompanyAddress, new
+                                    {
+                                        @class = "field-custom-control",
+                                        id = "CompanyAddress",
+                                        placeholder = "e.g. 100 Innovation Way, Suite 400, New York, NY",
+                                        autocomplete = "street-address"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.CompanyAddress, "", new { @class = "field-validation-error" })
+                            </div>
+
+                            <div class="form-grid-pair">
+                                <div class="field-group-container">
+                                    @Html.LabelFor(m => m.CompanyEmail, "Official Work Email")
+                                    <div class="field-input-wrapper">
+                                        <span class="field-inner-icon"><i class="fa-solid fa-envelope"></i></span>
+                                        @Html.TextBoxFor(m => m.CompanyEmail, new
+                                        {
+                                            @class = "field-custom-control",
+                                            id = "CompanyEmail",
+                                            type = "email",
+                                            placeholder = "hr@company.com",
+                                            autocomplete = "email"
+                                        })
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.CompanyEmail, "", new { @class = "field-validation-error" })
+                                </div>
+
+                                <div class="field-group-container">
+                                    @Html.LabelFor(m => m.CompanyPhone, "Contact Phone")
+                                    <div class="field-input-wrapper">
+                                        <span class="field-inner-icon"><i class="fa-solid fa-phone"></i></span>
+                                        @Html.TextBoxFor(m => m.CompanyPhone, new
+                                        {
+                                            @class = "field-custom-control",
+                                            id = "CompanyPhone",
+                                            placeholder = "+1 (555) 000-0000",
+                                            autocomplete = "tel"
+                                        })
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.CompanyPhone, "", new { @class = "field-validation-error" })
+                                </div>
+                            </div>
+
+                            <!-- 2. Recruiter Account Credentials Group -->
+                            <div class="form-fieldset-legend">
+                                <i class="fa-solid fa-shield-halved"></i> Recruiter Credentials
+                            </div>
+
+                            <div class="form-grid-pair">
+                                <div class="field-group-container">
+                                    @Html.LabelFor(m => m.Username, "Username")
+                                    <div class="field-input-wrapper">
+                                        <span class="field-inner-icon"><i class="fa-solid fa-user"></i></span>
+                                        @Html.TextBoxFor(m => m.Username, new
+                                        {
+                                            @class = "field-custom-control",
+                                            id = "Username",
+                                            placeholder = "Choose username",
+                                            autocomplete = "username"
+                                        })
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.Username, "", new { @class = "field-validation-error" })
+                                </div>
+
+                                <div class="field-group-container">
+                                    @Html.LabelFor(m => m.Password, "Password")
+                                    <div class="field-input-wrapper">
+                                        <span class="field-inner-icon"><i class="fa-solid fa-lock"></i></span>
+                                        @Html.PasswordFor(m => m.Password, new
+                                        {
+                                            @class = "field-custom-control",
+                                            id = "companyPassword",
+                                            placeholder = "Min. 6 characters",
+                                            autocomplete = "new-password"
+                                        })
+                                        <button type="button" class="btn-inline-eye-toggle" id="togglePasswordBtn" tabindex="-1" title="Show/Hide Password" aria-label="Toggle password visibility">
+                                            <i class="fa-solid fa-eye-slash" id="togglePasswordIcon"></i>
+                                        </button>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "field-validation-error" })
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn-submit-company" id="btnSubmitCompany">
+                                <span>Register Company Account</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+
+                            <!-- Legal Footnote -->
+                            <div class="form-legal-footnote">
+                                By registering, you agree to JobNest's Employer Service Terms and Privacy Policy.
+                            </div>
+
+                            <!-- Candidate Portal Switch -->
+                            <div class="candidate-switch-strip">
+                                <span>Looking for candidate jobs instead?</span>
+                                <a href="@Url.Action("AddEmployee", "Employee")" class="link-switch-candidate">
+                                    <span>Register as Candidate</span>
+                                    <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i>
+                                </a>
+                            </div>
+                        }
+                    }
+
+                </div>
+            </div>
+
+            <!-- Bottom Note -->
+            <div class="canvas-bottom-bar">
+                <span>Enterprise verification &amp; 256-bit encrypted data protection &bull; JobNest Portal</span>
+            </div>
+
+        </main>
+
     </div>
-
-    <!-- Minimal Footer -->
-    <footer class="footer-minimal">
-        <div class="container">
-            <p style="margin: 0;">&copy; @DateTime.Now.Year JobNest Employer Portal. All rights reserved.</p>
-        </div>
-    </footer>
 
     <!-- Scripts -->
     @Scripts.Render("~/bundles/jquery")
@@ -812,24 +1225,45 @@
     <script>
         $(document).ready(function () {
             // Password Show/Hide Toggle
-            $("#togglePasswordBtn").click(function () {
-                var passwordInput = $("#companyPassword");
+            $("#togglePasswordBtn").on("click", function (e) {
+                e.preventDefault();
+                var pwd = $("#companyPassword");
                 var icon = $("#togglePasswordIcon");
 
-                if (passwordInput.attr("type") === "password") {
-                    passwordInput.attr("type", "text");
-                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
-                } else {
-                    passwordInput.attr("type", "password");
+                if (pwd.attr("type") === "password") {
+                    pwd.attr("type", "text");
                     icon.removeClass("fa-eye-slash").addClass("fa-eye");
+                } else {
+                    pwd.attr("type", "password");
+                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
                 }
             });
 
-            // Reset Button - Clear all form fields completely (even after POST errors)
-            $(".btn-reset-custom").click(function (e) {
-                e.preventDefault();
-                $("#addCompanyForm").find("input[type=text], input[type=email], input[type=password], textarea").val("");
-                $("#addCompanyForm").find(".field-validation-error").empty();
+            // Dismiss Error Toast
+            $("#btnCloseToast").on("click", function () {
+                $(this).closest(".form-error-toast").slideUp(200);
+            });
+
+            // Synchronize input-validation-error class to .field-input-wrapper
+            function updateInputWrapperState() {
+                $('.field-input-wrapper').each(function () {
+                    var $wrapper = $(this);
+                    var $input = $wrapper.find('.field-custom-control');
+                    if ($input.hasClass('input-validation-error')) {
+                        $wrapper.addClass('has-error');
+                    } else {
+                        $wrapper.removeClass('has-error');
+                    }
+                });
+            }
+
+            // Sync on initial load and upon user interaction / validation
+            updateInputWrapperState();
+            $('#addCompanyForm').on('input change blur', 'input', function () {
+                setTimeout(updateInputWrapperState, 40);
+            });
+            $('#addCompanyForm').on('submit', function () {
+                setTimeout(updateInputWrapperState, 80);
             });
         });
     </script>

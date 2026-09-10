@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -40,18 +40,5 @@ namespace JobNest.Models
         public string Password { get; set; }
 
         public string LoginType { get; set; }
-    }
-    public partial class JobPosting
-    {
-        public int JobId { get; set; }
-        public string JobTitle { get; set; }
-        public int ExperienceRequired { get; set; }
-        public string RequiredSkills { get; set; }
-        public string JobLocation { get; set; }
-        public string RequiredQualification { get; set; }
-        public decimal Salary { get; set; }
-        public System.DateTime PostDate { get; set; }
-        public System.DateTime EndDate { get; set; }
-        public string JobStatus { get; set; }
     }
 }

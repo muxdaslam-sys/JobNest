@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - JobNest Recruiter Hub</title>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,16 +15,25 @@
 
     <!-- Bootstrap & Site CSS Bundles -->
     @Styles.Render("~/Content/css")
-    @RenderSection("styles", required: false)
 
     <style>
+        :root {
+            --primary-blue: #185adb;
+            --hover-blue: #1041a3;
+            --light-blue: #eff6ff;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6fb;
+            background-color: var(--bg-page);
             color: #1e293b;
             margin: 0;
             padding: 0;
@@ -33,41 +42,32 @@
             flex-direction: column;
         }
 
-        /* Top Employer Navigation Bar (Naukri Recruiter Theme) */
-        .recruiter-navbar {
+        /* Top Recruiter Navigation Bar */
+        .recruiter-header {
             background-color: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
             position: sticky;
             top: 0;
             z-index: 1050;
         }
 
-        .navbar-inner-container {
+        .nav-wrapper {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 68px;
+            height: 64px;
         }
 
-        /* Left Branding */
-        .brand-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .recruiter-brand {
+        /* Left: Logo & Branding */
+        .brand-logo-link {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            font-size: 21px;
-            font-weight: 800;
-            color: #0f172a;
             text-decoration: none !important;
         }
 
-        .brand-icon-sq {
+        .brand-icon-box {
             width: 36px;
             height: 36px;
             background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
@@ -77,85 +77,46 @@
             align-items: center;
             justify-content: center;
             font-size: 17px;
-            box-shadow: 0 3px 8px rgba(24, 90, 219, 0.3);
+            box-shadow: 0 3px 8px rgba(24, 90, 219, 0.28);
         }
 
-        .recruiter-badge {
-            background: #eff6ff;
-            color: #1d4ed8;
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.4px;
+        }
+
+        .brand-title span {
+            color: var(--primary-blue);
+        }
+
+        .brand-badge {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
             border: 1px solid #bfdbfe;
             font-size: 10.5px;
             font-weight: 700;
-            padding: 3px 8px;
+            padding: 2px 7px;
             border-radius: 6px;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        /* Center Navigation Tabs */
-        .nav-center-menu {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .nav-tab-item {
-            position: relative;
-        }
-
-        .nav-tab-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            font-size: 13.5px;
-            font-weight: 600;
-            color: #475569;
-            text-decoration: none !important;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .nav-tab-link:hover {
-            color: #185adb;
-            background-color: #f1f5f9;
-        }
-
-        .nav-tab-link.active {
-            color: #185adb;
-            background-color: #eff6ff;
-            font-weight: 700;
-        }
-
-        .nav-tab-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 16px;
-            right: 16px;
-            height: 3px;
-            background-color: #185adb;
-            border-radius: 3px 3px 0 0;
-        }
-
-        /* Right Actions Cluster */
+        /* Right: Actions Cluster */
         .nav-right-cluster {
             display: flex;
             align-items: center;
             gap: 14px;
         }
 
-        /* Post a Job CTA */
-        .btn-post-job-cta {
+        /* Primary Quick CTA: Post Job */
+        .btn-quick-post {
             background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
             color: #ffffff !important;
             font-size: 13px;
             font-weight: 700;
-            padding: 9px 18px;
+            padding: 8px 18px;
             border-radius: 8px;
             text-decoration: none !important;
             display: inline-flex;
@@ -165,72 +126,37 @@
             transition: all 0.2s ease;
         }
 
-        .btn-post-job-cta:hover {
+        .btn-quick-post:hover {
             background: linear-gradient(135deg, #1041a3 0%, #185adb 100%);
             transform: translateY(-1px);
             box-shadow: 0 4px 14px rgba(24, 90, 219, 0.35);
         }
 
-        /* Notification Bell Icon */
-        .nav-icon-btn {
-            position: relative;
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #475569;
-            font-size: 15px;
-            text-decoration: none !important;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .nav-icon-btn:hover {
-            background-color: #f1f5f9;
-            color: #185adb;
-            border-color: #cbd5e1;
-        }
-
-        .nav-icon-btn .badge-dot {
-            position: absolute;
-            top: 7px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            border: 1.5px solid #ffffff;
-        }
-
-        /* Profile Dropdown Component */
-        .profile-dropdown-container {
+        /* User Profile Trigger & Dropdown */
+        .user-dropdown-container {
             position: relative;
         }
 
-        .profile-trigger-btn {
+        .user-profile-trigger {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 5px 12px 5px 6px;
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
             cursor: pointer;
             text-decoration: none !important;
             transition: all 0.2s ease;
             user-select: none;
         }
 
-        .profile-trigger-btn:hover {
+        .user-profile-trigger:hover {
             background: #f1f5f9;
             border-color: #cbd5e1;
         }
 
-        .company-avatar {
+        .user-avatar {
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -243,52 +169,66 @@
             font-weight: 700;
         }
 
-        .profile-info {
+        .user-meta {
             display: flex;
             flex-direction: column;
             text-align: left;
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
-        .profile-title {
+        .user-name {
             font-size: 13px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--text-dark);
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .profile-sub {
+        .user-role-tag {
             font-size: 11px;
-            color: #64748b;
+            font-weight: 500;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .profile-caret {
+        .user-role-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #10b981;
+        }
+
+        .user-caret {
             font-size: 11px;
             color: #94a3b8;
-            margin-left: 2px;
-            transition: transform 0.2s;
+            transition: transform 0.2s ease;
         }
 
-        /* Dropdown Popup Menu */
-        .recruiter-dropdown-menu {
+        /* Dropdown Menu */
+        .user-menu-popover {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
             width: 240px;
             background: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
             padding: 8px 0;
             display: none;
             z-index: 1100;
-            animation: fadeInDown 0.15s ease-out forwards;
         }
 
-        .recruiter-dropdown-menu.show {
+        .user-menu-popover.show {
             display: block;
+            animation: menuFadeIn 0.15s ease-out;
         }
 
-        @@keyframes fadeInDown {
+        @@keyframes menuFadeIn {
             from {
                 opacity: 0;
                 transform: translateY(-6px);
@@ -299,87 +239,88 @@
             }
         }
 
-        .dropdown-menu-header {
-            padding: 10px 16px;
+        .menu-header {
+            padding: 10px 18px;
             border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 6px;
         }
 
-        .dropdown-menu-header h5 {
-            font-size: 13px;
+        .menu-header-title {
+            font-size: 13.5px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-dark);
             margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .dropdown-menu-header span {
+        .menu-header-sub {
             font-size: 11.5px;
-            color: #64748b;
+            color: var(--text-muted);
+            margin: 0;
         }
 
-        .dropdown-menu-item {
+        .menu-link-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 9px 16px;
+            gap: 12px;
+            padding: 9px 18px;
             font-size: 13px;
             font-weight: 500;
             color: #334155;
             text-decoration: none !important;
-            transition: all 0.15s;
+            transition: all 0.15s ease;
         }
 
-        .dropdown-menu-item:hover {
-            background-color: #f8fafc;
-            color: #185adb;
-        }
-
-        .dropdown-menu-item i {
-            width: 16px;
+        .menu-link-item i {
             font-size: 14px;
             color: #64748b;
+            width: 18px;
+            text-align: center;
         }
 
-        .dropdown-menu-item:hover i {
-            color: #185adb;
+        .menu-link-item:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
         }
 
-        .dropdown-divider {
+        .menu-link-item:hover i {
+            color: var(--primary-blue);
+        }
+
+        .menu-divider {
             height: 1px;
             background-color: #f1f5f9;
             margin: 6px 0;
         }
 
-        .dropdown-item-logout {
-            color: #ef4444;
+        .menu-link-logout {
+            color: #dc2626 !important;
         }
 
-        .dropdown-item-logout:hover {
-            background-color: #fef2f2;
-            color: #dc2626;
+        .menu-link-logout i {
+            color: #dc2626 !important;
         }
 
-        .dropdown-item-logout i {
-            color: #ef4444;
+        .menu-link-logout:hover {
+            background-color: #fef2f2 !important;
         }
 
-        .dropdown-item-logout:hover i {
-            color: #dc2626;
-        }
-
-        /* Main Page Layout Wrapper */
+        /* Main Content */
         .company-main-content {
             flex: 1;
             width: 100%;
         }
 
-        /* Recruiter Minimal Footer */
-        .recruiter-footer {
+        /* Footer */
+        .company-footer {
             background-color: #ffffff;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--border-color);
             padding: 24px 0;
-            color: #64748b;
-            font-size: 13px;
             margin-top: auto;
+            font-size: 13px;
+            color: var(--text-muted);
         }
 
         .footer-flex {
@@ -390,7 +331,7 @@
             gap: 12px;
         }
 
-        .footer-links {
+        .footer-nav {
             display: flex;
             gap: 18px;
             list-style: none;
@@ -398,199 +339,105 @@
             padding: 0;
         }
 
-        .footer-links a {
+        .footer-nav a {
             color: #64748b;
             text-decoration: none;
             transition: color 0.2s;
         }
 
-        .footer-links a:hover {
-            color: #185adb;
-        }
-
-        /* Mobile Hamburger */
-        .mobile-toggle-btn {
-            display: none;
-            background: none;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 7px 11px;
-            color: #475569;
-            font-size: 17px;
-            cursor: pointer;
-        }
-
-        @@media (max-width: 991px) {
-            .mobile-toggle-btn {
-                display: block;
-            }
-
-            .navbar-inner-container {
-                flex-wrap: wrap;
-                height: auto;
-                padding: 12px 0;
-            }
-
-            .nav-center-menu {
-                display: none;
-                width: 100%;
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 12px 0;
-                border-top: 1px solid #f1f5f9;
-                margin-top: 10px;
-                gap: 4px;
-            }
-
-            .nav-center-menu.mobile-open {
-                display: flex;
-            }
-
-            .nav-tab-link {
-                width: 100%;
-            }
-
-            .nav-tab-link.active::after {
-                display: none;
-            }
-
-            .nav-right-cluster {
-                margin-left: auto;
-            }
-
-            .profile-info {
-                display: none;
-            }
-
-            .footer-flex {
-                flex-direction: column;
-                text-align: center;
-                gap: 8px;
-            }
-
-            .footer-links {
-                justify-content: center;
-            }
+        .footer-nav a:hover {
+            color: var(--primary-blue);
         }
     </style>
+
+    @RenderSection("styles", required: false)
 </head>
 <body>
 
-    <!-- Recruiter Top Navigation Bar (Naukri Pro Recruiter Theme) -->
-    <nav class="recruiter-navbar">
+    <!-- Recruiter Header (Clean Logo Left + User Dropdown Right) -->
+    <header class="recruiter-header">
         <div class="container">
-            <div class="navbar-inner-container">
+            <div class="nav-wrapper">
                 
-                <!-- Left: Branding & Recruiter Badge -->
-                <div class="brand-wrapper">
-                    <a href="@Url.Action("Index", "Company")" class="recruiter-brand">
-                        <div class="brand-icon-sq">
-                            <i class="fa-solid fa-briefcase"></i>
-                        </div>
-                        <span>Job<span style="color:#185adb;">Nest</span></span>
-                    </a>
-                    <span class="recruiter-badge">Recruiter</span>
-                </div>
+                <!-- Left: Branding Logo -->
+                <a href="@Url.Action("Index", "Company")" class="brand-logo-link">
+                    <div class="brand-icon-box">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div class="brand-title">Job<span>Nest</span></div>
+                    <span class="brand-badge">Recruiter Hub</span>
+                </a>
 
-                <!-- Center: Navigation Tabs -->
-                <ul class="nav-center-menu" id="navCenterMenu">
-                    <li class="nav-tab-item">
-                        <a href="@Url.Action("Index", "Company")" class="nav-tab-link" id="navDashboard">
-                            <i class="fa-solid fa-gauge-high"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-tab-item">
-                        <a href="@Url.Action("AddJobPosting", "Company")" class="nav-tab-link" id="navPostJob">
-                            <i class="fa-solid fa-plus-circle"></i> Post a Job
-                        </a>
-                    </li>
-                    <li class="nav-tab-item">
-                        <a href="@Url.Action("Index", "Company")" class="nav-tab-link">
-                            <i class="fa-solid fa-users-viewfinder"></i> Candidate Responses
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Right: Action Buttons, Notifications & Profile Menu -->
+                <!-- Right: Quick CTA + User Details Dropdown -->
                 <div class="nav-right-cluster">
                     
-                    <!-- Post a Job Primary CTA -->
-                    <a href="@Url.Action("AddJobPosting", "Company")" class="btn-post-job-cta hidden-xs">
-                        <i class="fa-solid fa-plus"></i> Post Job
+                    <!-- 1-Click Quick Post Job Button -->
+                    <a href="@Url.Action("AddJobPosting", "Company")" class="btn-quick-post hidden-xs">
+                        <i class="fa-solid fa-circle-plus"></i> Post Job
                     </a>
 
-                    <!-- Notification Alert Icon -->
-                    <a href="javascript:void(0);" class="nav-icon-btn" title="Notifications" onclick="alert('You have no new unread applicant notifications.');">
-                        <i class="fa-regular fa-bell"></i>
-                        <span class="badge-dot"></span>
-                    </a>
-
-                    <!-- Recruiter Account Dropdown -->
-                    <div class="profile-dropdown-container">
-                        <div class="profile-trigger-btn" id="profileDropdownTrigger" role="button" tabindex="0" aria-haspopup="true">
-                            <div class="company-avatar">
-                                <i class="fa-solid fa-building"></i>
+                    <!-- User Profile Trigger -->
+                    <div class="user-dropdown-container">
+                        <div class="user-profile-trigger" id="userMenuTrigger" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                            <div class="user-avatar">
+                                @(Session["Username"] != null && Session["Username"].ToString().Length > 0 ? Session["Username"].ToString().Substring(0, 1).ToUpper() : "C")
                             </div>
-                            <div class="profile-info">
-                                <span class="profile-title">Employer Account</span>
-                                <span class="profile-sub">Online</span>
+                            <div class="user-meta hidden-xs">
+                                <span class="user-name">@(Session["Username"] != null ? Session["Username"].ToString() : "Employer Account")</span>
+                                <span class="user-role-tag">
+                                    <span class="user-role-dot"></span> Recruiter
+                                </span>
                             </div>
-                            <i class="fa-solid fa-chevron-down profile-caret" id="dropdownCaret"></i>
+                            <i class="fa-solid fa-chevron-down user-caret" id="menuCaret"></i>
                         </div>
 
-                        <!-- Dropdown Popup Menu -->
-                        <div class="recruiter-dropdown-menu" id="recruiterDropdownMenu">
-                            <div class="dropdown-menu-header">
-                                <h5>Recruiter Portal</h5>
-                                <span>Company Account</span>
+                        <!-- Dropdown Menu -->
+                        <div class="user-menu-popover" id="userMenuPopover">
+                            <div class="menu-header">
+                                <h5 class="menu-header-title">@(Session["Username"] != null ? Session["Username"].ToString() : "Employer Account")</h5>
+                                <p class="menu-header-sub">Recruiter Management</p>
                             </div>
 
-                            <a href="@Url.Action("Index", "Company")" class="dropdown-menu-item">
+                            <a href="@Url.Action("Index", "Company")" class="menu-link-item">
                                 <i class="fa-solid fa-gauge-high"></i> Dashboard
                             </a>
-                            <a href="@Url.Action("AddJobPosting", "Company")" class="dropdown-menu-item">
-                                <i class="fa-solid fa-file-circle-plus"></i> Post New Job
+                            <a href="@Url.Action("AddJobPosting", "Company")" class="menu-link-item">
+                                <i class="fa-solid fa-circle-plus"></i> Post a New Job
                             </a>
-                            <a href="@Url.Action("Contact", "Home")" class="dropdown-menu-item">
-                                <i class="fa-solid fa-headset"></i> Recruiter Support
+                            <a href="@Url.Action("ViewJobPostings", "Company")" class="menu-link-item">
+                                <i class="fa-solid fa-layer-group"></i> Manage Job Postings
                             </a>
 
-                            <div class="dropdown-divider"></div>
+                            <div class="menu-divider"></div>
 
-                            <a href="@Url.Action("Logout", "Account")" class="dropdown-menu-item dropdown-item-logout">
+                            <a href="@Url.Action("Logout", "Account")" class="menu-link-item menu-link-logout">
                                 <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                             </a>
                         </div>
                     </div>
 
-                    <!-- Mobile Menu Hamburger Button -->
-                    <button type="button" class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle navigation">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-
                 </div>
 
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Dynamic Content -->
     <main class="company-main-content">
         @RenderBody()
     </main>
 
-    <!-- Recruiter Minimal Footer -->
-    <footer class="recruiter-footer">
+    <!-- Clean Footer -->
+    <footer class="company-footer">
         <div class="container">
             <div class="footer-flex">
                 <div>
                     &copy; @DateTime.Now.Year JobNest Recruiter Hub. All rights reserved.
                 </div>
-                <ul class="footer-links">
+                <ul class="footer-nav">
                     <li><a href="@Url.Action("Index", "Company")">Dashboard</a></li>
-                    <li><a href="@Url.Action("AddJobPosting", "Company")">Post a Job</a></li>
-                    <li><a href="@Url.Action("About", "Home")">About</a></li>
-                    <li><a href="@Url.Action("Contact", "Home")">Recruiter Support</a></li>
+                    <li><a href="@Url.Action("AddJobPosting", "Company")">Post Job</a></li>
+                    <li><a href="@Url.Action("ViewJobPostings", "Company")">Manage Postings</a></li>
                 </ul>
             </div>
         </div>
@@ -602,34 +449,54 @@
 
     <script>
         $(document).ready(function () {
-            // Profile Dropdown Toggle
-            $("#profileDropdownTrigger").click(function (e) {
-                e.stopPropagation();
-                $("#recruiterDropdownMenu").toggleClass("show");
-                var isShown = $("#recruiterDropdownMenu").hasClass("show");
-                $("#dropdownCaret").css("transform", isShown ? "rotate(180deg)" : "rotate(0deg)");
-            });
+            var $trigger = $("#userMenuTrigger");
+            var $popover = $("#userMenuPopover");
+            var $caret = $("#menuCaret");
 
-            // Close dropdown when clicking outside
-            $(document).click(function (e) {
-                if (!$(e.target).closest('.profile-dropdown-container').length) {
-                    $("#recruiterDropdownMenu").removeClass("show");
-                    $("#dropdownCaret").css("transform", "rotate(0deg)");
+            function toggleMenu(e) {
+                if (e) e.stopPropagation();
+                var isOpen = $popover.hasClass("show");
+                if (isOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+
+            function openMenu() {
+                $popover.addClass("show");
+                $caret.css("transform", "rotate(180deg)");
+                $trigger.attr("aria-expanded", "true");
+            }
+
+            function closeMenu() {
+                $popover.removeClass("show");
+                $caret.css("transform", "rotate(0deg)");
+                $trigger.attr("aria-expanded", "false");
+            }
+
+            $trigger.on("click", toggleMenu);
+
+            $trigger.on("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleMenu();
                 }
             });
 
-            // Mobile Menu Toggle
-            $("#mobileToggleBtn").click(function () {
-                $("#navCenterMenu").toggleClass("mobile-open");
+            // Close on click outside
+            $(document).on("click", function (e) {
+                if (!$(e.target).closest(".user-dropdown-container").length) {
+                    closeMenu();
+                }
             });
 
-            // Active Tab Detection
-            var currentPath = window.location.pathname.toLowerCase();
-            if (currentPath.indexOf("addjobposting") !== -1) {
-                $("#navPostJob").addClass("active");
-            } else if (currentPath.indexOf("company") !== -1 || currentPath.indexOf("index") !== -1) {
-                $("#navDashboard").addClass("active");
-            }
+            // Close on Escape key
+            $(document).on("keydown", function (e) {
+                if (e.key === "Escape") {
+                    closeMenu();
+                }
+            });
         });
     </script>
 

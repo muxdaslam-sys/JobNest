@@ -45,4 +45,32 @@ namespace JobNest.Models
         public string ApplicationStatus { get; set; }
         public string ResumePath { get; set; }
     }
+
+    public class AppliedJobs
+    {
+        public int JobId { get; set; }
+        public string JobTitle { get; set; }
+        public string CompanyName { get; set; }
+        public string JobLocation { get; set; }
+        public decimal? Salary { get; set; }
+        public DateTime? ApplicationDate { get; set; }
+        public string ApplicationStatus { get; set; }
+        public string ResumePath { get; set; }
+    }
+
+    public class CandidateApplicationViewModel
+    {
+        public int JobApplicationId { get; set; }
+        public int JobId { get; set; }
+        public int EmployeeId { get; set; }
+        public string CandidateName { get; set; }
+        public string CandidateEmail { get; set; }
+        public string CandidatePhone { get; set; }
+        public string CandidateSkills { get; set; }
+        public int? CandidateExperience { get; set; }
+        public string CandidatePhoto { get; set; }
+        public DateTime ApplicationDate { get; set; }
+        public string Resume { get; set; }
+        public string ApplicationStatus { get; set; }
+    }
 }

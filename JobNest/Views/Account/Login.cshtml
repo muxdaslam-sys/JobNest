@@ -2,7 +2,8 @@
 
 @{
     Layout = null;
-    ViewBag.Title = "Sign In | JobNest - Jobs & Recruitment Portal";
+    ViewBag.Title = "Sign In | JobNest - Candidate & Employer Portal";
+    bool hasGeneralError = ViewData.ModelState[""] != null && ViewData.ModelState[""].Errors.Count > 0;
 }
 
 <!DOCTYPE html>
@@ -15,7 +16,7 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,7 +25,59 @@
     @Styles.Render("~/Content/css")
 
     <style>
-        /* Global CSS Reset & Overrides for ASP.NET Site.css */
+        /* ========================================
+           CSS VARIABLES & DESIGN SYSTEM
+           ======================================== */
+        :root {
+            --green: #059669;
+            --green-hover: #047857;
+            --green-light: #ecfdf5;
+            --green-border: #a7f3d0;
+            --green-glow: rgba(5, 150, 105, 0.16);
+            --green-stat: #34d399;
+            --green-grad: linear-gradient(135deg, #059669 0%, #10b981 100%);
+
+            --blue: #185adb;
+            --blue-hover: #1041a3;
+            --blue-light: #eff6ff;
+            --blue-border: #bfdbfe;
+            --blue-glow: rgba(24, 90, 219, 0.16);
+            --blue-stat: #60a5fa;
+            --blue-grad: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+
+            --dark: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-subtle: #e2e8f0;
+            --bg-right: #f8fafc;
+        }
+
+        /* Role: Candidate Active Theming */
+        body.role-candidate {
+            --active: #059669;
+            --active-hover: #047857;
+            --active-light: #ecfdf5;
+            --active-border: #a7f3d0;
+            --active-glow: rgba(5, 150, 105, 0.16);
+            --active-grad: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            --active-shadow: rgba(5, 150, 105, 0.32);
+            --mesh-primary: rgba(16, 185, 129, 0.45);
+            --mesh-secondary: rgba(52, 211, 153, 0.3);
+        }
+
+        /* Role: Company / Employer Active Theming */
+        body.role-company {
+            --active: #185adb;
+            --active-hover: #1041a3;
+            --active-light: #eff6ff;
+            --active-border: #bfdbfe;
+            --active-glow: rgba(24, 90, 219, 0.16);
+            --active-grad: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+            --active-shadow: rgba(24, 90, 219, 0.32);
+            --mesh-primary: rgba(37, 99, 235, 0.45);
+            --mesh-secondary: rgba(96, 165, 250, 0.3);
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -35,629 +88,1143 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6fa;
-            color: #1e293b;
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            background-color: #ffffff;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ========================================
+           SPLIT SCREEN CONTAINER (Balanced 50/50 Grid)
+           ======================================== */
+        .split-auth-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* ========================================
+           LEFT PANEL — Brand & Narrative Hub
+           ======================================== */
+        .left-brand-panel {
+            width: 50%;
+            min-height: 100vh;
+            background: linear-gradient(165deg, #0b1120 0%, #111a33 55%, #0d152a 100%);
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding: 36px 48px;
+            z-index: 1;
         }
 
-        /* Top Brand Navigation Header */
-        .auth-top-header {
-            background-color: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 16px 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        /* Subtle Background Dot Texture */
+        .left-brand-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 26px 26px;
+            z-index: 1;
+            pointer-events: none;
         }
 
-        .auth-brand-logo {
+        /* Ambient Glowing Blobs */
+        .mesh-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(85px);
+            transition: background 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .mesh-orb-top {
+            width: 440px;
+            height: 440px;
+            top: -90px;
+            right: -60px;
+            background: radial-gradient(circle, var(--mesh-primary) 0%, transparent 70%);
+            animation: floatOrbTop 14s ease-in-out infinite alternate;
+        }
+
+        .mesh-orb-bottom {
+            width: 380px;
+            height: 380px;
+            bottom: -60px;
+            left: -40px;
+            background: radial-gradient(circle, var(--mesh-secondary) 0%, transparent 70%);
+            animation: floatOrbBottom 12s ease-in-out infinite alternate;
+        }
+
+        @@keyframes floatOrbTop {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -20px) scale(1.1); }
+        }
+
+        @@keyframes floatOrbBottom {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-20px, -30px) scale(1.08); }
+        }
+
+        /* Left Header: Logo & Status Badge (Locked at Top) */
+        .left-top-bar {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+        }
+
+        .brand-logo-link {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 22px;
-            font-weight: 800;
-            color: #0f172a;
+            gap: 12px;
             text-decoration: none !important;
         }
 
-        .brand-icon-box {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
-            color: #ffffff;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 3px 8px rgba(24, 90, 219, 0.25);
-        }
-
-        .top-header-right {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-            font-size: 13.5px;
-            color: #64748b;
-        }
-
-        .top-header-right a {
-            color: #185adb;
-            font-weight: 700;
-            text-decoration: none !important;
-        }
-
-        .top-header-right a:hover {
-            text-decoration: underline !important;
-        }
-
-        /* Main Center Page Container */
-        .auth-main-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 16px;
-        }
-
-        .naukri-auth-card {
-            background: #ffffff;
-            border-radius: 18px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 0 1px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            width: 100%;
-            max-width: 960px;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        /* Left Side: Naukri Trust & Perks Showcase */
-        .auth-showcase-panel {
-            flex: 1;
-            min-width: 340px;
-            background: linear-gradient(145deg, #0a2540 0%, #1e3a8a 60%, #185adb 100%);
-            color: #ffffff;
-            padding: 44px 36px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .showcase-header h2 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #ffffff;
-            margin: 0 0 10px 0;
-            line-height: 1.3;
-            letter-spacing: -0.4px;
-        }
-
-        .showcase-header p {
-            font-size: 13.5px;
-            color: #bfdbfe;
-            margin: 0 0 30px 0;
-            line-height: 1.5;
-        }
-
-        .perk-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .perk-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-        }
-
-        .perk-icon-circle {
+        .brand-logo-icon {
             width: 40px;
             height: 40px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, #059669 0%, #185adb 100%);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #60a5fa;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .perk-info h4 {
-            font-size: 15px;
-            font-weight: 700;
             color: #ffffff;
-            margin: 0 0 3px 0;
+            font-size: 18px;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
         }
 
-        .perk-info p {
-            font-size: 12.5px;
+        .brand-logo-text {
+            font-size: 23px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-logo-accent {
+            transition: color 0.4s ease;
+        }
+
+        body.role-candidate .brand-logo-accent { color: var(--green-stat); }
+        body.role-company .brand-logo-accent { color: var(--blue-stat); }
+
+        .system-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
             color: #cbd5e1;
+            backdrop-filter: blur(8px);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            transition: background-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        body.role-candidate .status-dot {
+            background-color: var(--green-stat);
+            box-shadow: 0 0 8px var(--green-stat);
+        }
+
+        body.role-company .status-dot {
+            background-color: var(--blue-stat);
+            box-shadow: 0 0 8px var(--blue-stat);
+        }
+
+        /* Left Body Content: Aligned Narrative & Cards */
+        .left-center-body {
+            position: relative;
+            z-index: 2;
+            margin: auto 0;
+            padding: 32px 0;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .left-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        body.role-candidate .left-badge {
+            background: rgba(5, 150, 105, 0.18);
+            color: var(--green-stat);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        body.role-company .left-badge {
+            background: rgba(24, 90, 219, 0.18);
+            color: var(--blue-stat);
+            border: 1px solid rgba(24, 90, 219, 0.3);
+        }
+
+        .left-headline {
+            font-size: 34px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.22;
+            letter-spacing: -1px;
+            margin: 0 0 14px 0;
+        }
+
+        .left-description {
+            font-size: 15px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin: 0 0 28px 0;
+        }
+
+        /* Feature Pillars (3 Value Props) */
+        .feature-pillars-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .feature-pillar-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 12px 16px;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .feature-pillar-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(4px);
+        }
+
+        .pillar-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.role-candidate .pillar-icon-box {
+            background: rgba(5, 150, 105, 0.2);
+            color: var(--green-stat);
+        }
+
+        body.role-company .pillar-icon-box {
+            background: rgba(24, 90, 219, 0.2);
+            color: var(--blue-stat);
+        }
+
+        .pillar-text-group {
+            flex: 1;
+        }
+
+        .pillar-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 2px;
+        }
+
+        .pillar-sub {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Trust Stats Row */
+        .trust-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            transition: border-color 0.4s;
+        }
+
+        body.role-candidate .stat-box { border-color: rgba(5, 150, 105, 0.2); }
+        body.role-company .stat-box { border-color: rgba(24, 90, 219, 0.2); }
+
+        .stat-number-val {
+            font-size: 22px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 5px;
+            transition: color 0.4s;
+        }
+
+        body.role-candidate .stat-number-val { color: var(--green-stat); }
+        body.role-company .stat-number-val { color: var(--blue-stat); }
+
+        .stat-title-lbl {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+        }
+
+        /* Left Bottom Footer */
+        .left-bottom-bar {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 20px;
+        }
+
+        .left-bottom-bar a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .left-bottom-bar a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        /* ========================================
+           RIGHT PANEL — Crisp Elevated Form Area
+           ======================================== */
+        .right-form-panel {
+            width: 50%;
+            min-height: 100vh;
+            background-color: var(--bg-right);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 48px;
+            position: relative;
+        }
+
+        /* Form Card Centering Container */
+        .form-card-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Elevated Auth Card (Fixes the Dead Space Problem) */
+        .auth-elevated-card {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 
+                        0 1px 3px rgba(0, 0, 0, 0.02);
+            padding: 38px 36px 32px;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        body.role-candidate .auth-elevated-card {
+            border-color: rgba(167, 243, 208, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(5, 150, 105, 0.1), 
+                        0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        body.role-company .auth-elevated-card {
+            border-color: rgba(191, 219, 254, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(24, 90, 219, 0.1), 
+                        0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Card Header & Badges */
+        .card-header-block {
+            margin-bottom: 22px;
+        }
+
+        .portal-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        body.role-candidate .portal-role-badge {
+            background-color: var(--green-light);
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        body.role-company .portal-role-badge {
+            background-color: var(--blue-light);
+            color: var(--blue);
+            border: 1px solid var(--blue-border);
+        }
+
+        .card-main-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -0.6px;
+            margin: 0 0 6px 0;
+        }
+
+        .card-sub-title {
+            font-size: 13.5px;
+            color: var(--text-muted);
             margin: 0;
             line-height: 1.45;
         }
 
-        .showcase-stat-bar {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 28px;
-        }
-
-        .stat-box {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-box:not(:last-child) {
-            border-right: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .stat-num {
-            font-size: 17px;
-            font-weight: 800;
-            color: #60a5fa;
-            display: block;
-        }
-
-        .stat-lbl {
-            font-size: 11px;
-            color: #e2e8f0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Right Side: Sign-In Form Panel */
-        .auth-form-panel {
-            flex: 1.15;
-            min-width: 340px;
-            padding: 44px 40px;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .form-heading-area {
+        /* Role Switcher (Equal Segments, High Contrast) */
+        .role-switch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 24px;
         }
 
-        .form-heading-area h3 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0 0 6px 0;
-            letter-spacing: -0.4px;
-        }
-
-        .form-heading-area p {
-            font-size: 13.5px;
-            color: #64748b;
-            margin: 0;
-        }
-
-        /* Form Groups & Full Width 52px Inputs */
-        .input-group-block {
-            margin-bottom: 20px;
-            width: 100% !important;
-        }
-
-        .input-label-row {
+        .role-switch-tile {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 7px;
-            width: 100% !important;
-        }
-
-        .input-label-row label {
-            font-size: 13.5px;
-            font-weight: 600;
-            color: #334155;
-            margin: 0;
-        }
-
-        .forgot-link {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #185adb;
-            text-decoration: none !important;
-        }
-
-        .forgot-link:hover {
-            text-decoration: underline !important;
-            color: #1041a3;
-        }
-
-        .spacious-input-wrapper {
-            position: relative;
-            display: block;
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-
-        .spacious-input-wrapper i.lead-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 16px;
-            pointer-events: none;
-            z-index: 2;
-            transition: color 0.2s;
-        }
-
-        .spacious-control {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            height: 52px !important;
-            padding: 12px 46px 12px 46px !important;
-            background-color: #ffffff;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
-            font-size: 14.5px;
-            font-weight: 500;
-            color: #0f172a;
-            transition: all 0.2s ease-in-out;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-subtle);
+            background: #ffffff;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
             outline: none;
-            box-sizing: border-box !important;
         }
 
-        .spacious-control::placeholder {
-            color: #94a3b8;
-            font-weight: 400;
+        .role-switch-tile:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            transform: translateY(-1px);
         }
 
-        .spacious-control:focus {
-            border-color: #185adb;
-            box-shadow: 0 0 0 3.5px rgba(24, 90, 219, 0.15);
+        .tile-icon-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: all 0.22s;
         }
 
-        .spacious-input-wrapper:focus-within i.lead-icon {
-            color: #185adb;
+        .cand-avatar { background: var(--green-light); color: var(--green); }
+        .comp-avatar { background: var(--blue-light); color: var(--blue); }
+
+        .tile-texts { flex: 1; min-width: 0; }
+        .tile-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        .tile-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Password Eye Toggle Button - Inside Input Field */
-        .btn-eye-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+        /* Active Candidate Tile */
+        .role-switch-tile.active-candidate {
+            border-color: var(--green);
+            background: var(--green-light);
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        /* Active Company Tile */
+        .role-switch-tile.active-company {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            box-shadow: 0 4px 12px var(--blue-glow);
+        }
+
+        /* Error Toast Banner */
+        .auth-error-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            animation: shakeBanner 0.35s ease-in-out;
+        }
+
+        .auth-error-banner .err-icon {
+            color: #dc2626;
+            font-size: 15px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .auth-error-banner .err-content { flex: 1; }
+        .auth-error-banner .err-heading {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #991b1b;
+            margin-bottom: 2px;
+        }
+
+        .auth-error-banner .validation-summary-errors ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .auth-error-banner .validation-summary-errors li {
+            font-size: 12px;
+            color: #b91c1c;
+            font-weight: 500;
+        }
+
+        .btn-dismiss-err {
             background: none;
             border: none;
             color: #94a3b8;
             cursor: pointer;
             font-size: 16px;
-            padding: 8px;
-            border-radius: 6px;
-            transition: color 0.2s;
-            z-index: 5;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .btn-dismiss-err:hover { color: #475569; }
+
+        @@keyframes shakeBanner {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+
+        /* Info Alert */
+        .auth-info-banner {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
+            padding: 11px 14px;
+            background: var(--blue-light);
+            border: 1px solid var(--blue-border);
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 12.5px;
+            color: #1e40af;
         }
 
-        .btn-eye-toggle:hover {
-            color: #1e293b;
+        /* Form Input Field Groups */
+        .field-unit {
+            margin-bottom: 16px;
         }
 
-        /* Submit Action Button */
-        .btn-naukri-submit {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: 50px;
-            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
-            color: #ffffff;
+        .field-label-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .field-label-line label,
+        .field-unit > label {
+            font-size: 13px;
             font-weight: 700;
-            font-size: 15px;
-            border: none;
-            border-radius: 10px;
+            color: var(--dark);
+            margin: 0 0 6px 0;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(24, 90, 219, 0.25);
-            transition: all 0.2s ease;
+            display: block;
+        }
+
+        .field-label-line label { margin-bottom: 0; }
+
+        .link-forgot-pass {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none !important;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .link-forgot-pass:hover {
+            color: var(--active);
+            text-decoration: underline !important;
+        }
+
+        .field-input-box {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .field-input-box:focus-within {
+            border-color: var(--active);
+            background: #ffffff;
+            box-shadow: 0 0 0 3.5px var(--active-glow);
+        }
+
+        .field-lead-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-top: 10px;
+            width: 42px;
+            flex-shrink: 0;
+            color: #94a3b8;
+            font-size: 14px;
+            transition: color 0.2s;
         }
 
-        .btn-naukri-submit:hover {
-            background: linear-gradient(135deg, #1041a3 0%, #185adb 100%);
-            box-shadow: 0 6px 18px rgba(24, 90, 219, 0.35);
-            transform: translateY(-1px);
+        .field-input-box:focus-within .field-lead-icon {
+            color: var(--active);
         }
 
-        /* Validation Messages */
+        .field-control {
+            flex: 1;
+            border: none !important;
+            background: transparent !important;
+            padding: 12px 14px 12px 0 !important;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--dark);
+            outline: none !important;
+            box-shadow: none !important;
+            height: auto !important;
+        }
+
+        .field-control::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .btn-eye-toggle {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 10px 14px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-eye-toggle:hover { color: #334155; }
+
         .field-validation-error {
             color: #ef4444;
-            font-size: 12.5px;
-            font-weight: 500;
-            margin-top: 5px;
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 4px;
             display: block;
         }
 
         .input-validation-error {
             border-color: #ef4444 !important;
-            background-color: #fffafb;
         }
 
-        .input-validation-error:focus {
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
-        }
-
-        .alert-error-banner {
-            background-color: #fef2f2;
-            border: 1px solid #fee2e2;
-            border-left: 4px solid #ef4444;
-            border-radius: 8px;
+        /* Forgot Password Assistance Card */
+        .forgot-help-card {
+            display: none;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
             padding: 12px 14px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #991b1b;
-        }
-
-        /* Registration Prompt Footer */
-        .register-prompt-area {
-            margin-top: 26px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f5f9;
-            text-align: center;
-        }
-
-        .register-prompt-area p {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0 0 12px 0;
-        }
-
-        .register-cards-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-reg-card {
-            flex: 1;
-            padding: 10px 12px;
-            border-radius: 9px;
+            margin-bottom: 16px;
             font-size: 12.5px;
-            font-weight: 600;
-            text-decoration: none !important;
-            display: inline-flex;
+            color: #1e40af;
+            line-height: 1.5;
+            animation: fadeInCard 0.2s ease;
+        }
+
+        .forgot-help-close {
+            float: right;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .forgot-help-close:hover { color: #0f172a; }
+
+        @@keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Primary Submit Button */
+        .btn-action-submit {
+            width: 100%;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+            gap: 8px;
+            margin-top: 6px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--active-grad);
+            box-shadow: 0 6px 18px var(--active-shadow);
         }
 
-        .btn-reg-card.candidate {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
+        .btn-action-submit:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px var(--active-shadow);
+            filter: brightness(1.05);
         }
 
-        .btn-reg-card.candidate:hover {
-            background-color: #dbeafe;
-            color: #1e40af;
+        .btn-action-submit:active {
+            transform: translateY(0);
         }
 
-        .btn-reg-card.employer {
-            background-color: #f8fafc;
-            color: #334155;
-            border: 1px solid #cbd5e1;
+        .btn-action-submit i {
+            font-size: 12px;
+            transition: transform 0.2s;
         }
 
-        .btn-reg-card.employer:hover {
-            background-color: #f1f5f9;
-            color: #0f172a;
-            border-color: #94a3b8;
+        .btn-action-submit:hover i {
+            transform: translateX(3px);
         }
 
-        /* Clean Bottom Footer */
-        .auth-bottom-footer {
-            background-color: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            padding: 18px 0;
+        /* Clean Register Gateway */
+        .register-gateway-block {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-subtle);
             text-align: center;
-            font-size: 12.5px;
-            color: #64748b;
         }
 
-        @@media (max-width: 991px) {
-            .naukri-auth-card {
-                flex-direction: column-reverse;
+        .register-prompt-lbl {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .reg-action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .reg-tile-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 11px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--dark);
+            text-decoration: none !important;
+            background: #ffffff;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reg-tile-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            z-index: 0;
+            transition: opacity 0.22s;
+        }
+
+        .reg-tile-btn span,
+        .reg-tile-btn i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .reg-tile-btn .btn-arrow-arr {
+            font-size: 9px;
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: all 0.22s;
+        }
+
+        /* Candidate Register Hover */
+        .reg-tile-btn.reg-cand::before {
+            background: var(--green-grad);
+        }
+
+        .reg-tile-btn.reg-cand:hover {
+            border-color: var(--green);
+            color: #ffffff !important;
+            transform: translateY(-1.5px);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.22);
+        }
+
+        .reg-tile-btn.reg-cand:hover::before { opacity: 1; }
+        .reg-tile-btn.reg-cand:hover .btn-arrow-arr { opacity: 1; transform: translateX(0); }
+
+        /* Company Register Hover */
+        .reg-tile-btn.reg-comp::before {
+            background: var(--blue-grad);
+        }
+
+        .reg-tile-btn.reg-comp:hover {
+            border-color: var(--blue);
+            color: #ffffff !important;
+            transform: translateY(-1.5px);
+            box-shadow: 0 4px 14px rgba(24, 90, 219, 0.22);
+        }
+
+        .reg-tile-btn.reg-comp:hover::before { opacity: 1; }
+        .reg-tile-btn.reg-comp:hover .btn-arrow-arr { opacity: 1; transform: translateX(0); }
+
+        /* Right Bottom Footer */
+        .right-bottom-bar {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 16px;
+        }
+
+        /* ========================================
+           RESPONSIVE BREAKPOINTS
+           ======================================== */
+        @@media (max-width: 1024px) {
+            .left-brand-panel { width: 50%; padding: 30px; }
+            .right-form-panel { width: 50%; padding: 30px; }
+            .left-headline { font-size: 28px; }
+        }
+
+        @@media (max-width: 860px) {
+            .split-auth-container { flex-direction: column; }
+            .left-brand-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 28px 24px;
             }
-            .auth-showcase-panel {
-                padding: 32px 24px;
+            .left-center-body { display: none; }
+            .left-bottom-bar { display: none; }
+            .right-form-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 24px 20px 36px;
             }
-            .auth-form-panel {
-                padding: 32px 24px;
-            }
-            .register-cards-row {
-                flex-direction: column;
-            }
+            .form-card-wrapper { padding: 10px 0; }
+            .auth-elevated-card { padding: 28px 22px; }
+        }
+
+        @@media (max-width: 480px) {
+            .role-switch-grid { grid-template-columns: 1fr; }
+            .reg-action-buttons { flex-direction: column; }
+            .card-main-title { font-size: 22px; }
         }
     </style>
 </head>
-<body>
 
-    <!-- Top Header Bar -->
-    <header class="auth-top-header">
-        <div class="container">
-            <div class="row" style="display: flex; align-items: center; justify-content: space-between;">
-                <div class="col-xs-6">
-                    <a href="@Url.Action("Index", "Home")" class="auth-brand-logo">
-                        <div class="brand-icon-box">
-                            <i class="fa-solid fa-briefcase"></i>
-                        </div>
-                        <span>Job<span style="color:#185adb;">Nest</span></span>
-                    </a>
-                </div>
-                <div class="col-xs-6 top-header-right">
-                    <span class="hidden-xs">New to JobNest?</span>
-                    <a href="@Url.Action("AddEmployee", "Employee")">Register for Free</a>
-                </div>
-            </div>
-        </div>
-    </header>
+<body class="role-candidate">
 
-    <!-- Main Auth Center Area -->
-    <div class="auth-main-wrapper">
-        <div class="naukri-auth-card">
-            
-            <!-- Left Side: Trust & Platform Benefits (Naukri Style) -->
-            <div class="auth-showcase-panel">
-                <div>
-                    <div class="showcase-header">
-                        <h2>One Gateway to Limitless Opportunities</h2>
-                        <p>Accelerate your career journey or discover qualified talent across thousands of verified companies.</p>
+    <div class="split-auth-container">
+
+        <!-- ==========================================
+             LEFT PANEL: Brand, Narrative & Value Props
+             ========================================== -->
+        <aside class="left-brand-panel">
+            <!-- Glowing Orbs -->
+            <div class="mesh-orb mesh-orb-top"></div>
+            <div class="mesh-orb mesh-orb-bottom"></div>
+
+            <!-- Top Header: Aligned at Top -->
+            <div class="left-top-bar">
+                <a href="@Url.Action("Index", "Home")" class="brand-logo-link">
+                    <div class="brand-logo-icon">
+                        <i class="fa-solid fa-briefcase"></i>
                     </div>
-
-                    <div class="perk-list">
-                        <div class="perk-item">
-                            <div class="perk-icon-circle">
-                                <i class="fa-solid fa-bolt"></i>
-                            </div>
-                            <div class="perk-info">
-                                <h4>One-Click Easy Apply</h4>
-                                <p>Apply directly to top hiring companies with your saved candidate profile.</p>
-                            </div>
-                        </div>
-
-                        <div class="perk-item">
-                            <div class="perk-icon-circle">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            </div>
-                            <div class="perk-info">
-                                <h4>Smart AI Matching</h4>
-                                <p>Get job notifications tailored directly to your skills and experience.</p>
-                            </div>
-                        </div>
-
-                        <div class="perk-item">
-                            <div class="perk-icon-circle">
-                                <i class="fa-solid fa-shield-check"></i>
-                            </div>
-                            <div class="perk-info">
-                                <h4>Verified Recruiters &amp; Jobs</h4>
-                                <p>100% authentic requirements from verified startups and enterprises.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Bar -->
-                <div class="showcase-stat-bar">
-                    <div class="stat-box">
-                        <span class="stat-num">500K+</span>
-                        <span class="stat-lbl">Active Jobs</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-num">50K+</span>
-                        <span class="stat-lbl">Companies</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-num">2.5M+</span>
-                        <span class="stat-lbl">Job Seekers</span>
-                    </div>
+                    <span class="brand-logo-text">Job<span class="brand-logo-accent">Nest</span></span>
+                </a>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span id="statusPortalText">Candidate Network</span>
                 </div>
             </div>
 
-            <!-- Right Side: Clean Sign-In Form -->
-            <div class="auth-form-panel">
-                <div>
-                    <div class="form-heading-area">
-                        <h3>Welcome Back</h3>
-                        <p>Sign in to access your Candidate or Company dashboard.</p>
+            <!-- Center Body: Dynamic Copy & Pillars -->
+            <div class="left-center-body">
+                <div class="left-badge" id="narrativeBadge">
+                    <i class="fa-solid fa-sparkles"></i>
+                    <span id="narrativeBadgeText">Verified Career Hub</span>
+                </div>
+
+                <h1 class="left-headline" id="narrativeHeadline">Your Next Career Move Starts Here</h1>
+                <p class="left-description" id="narrativeDesc">
+                    Discover verified roles from top tech and corporate employers. Track applications seamlessly and elevate your professional journey.
+                </p>
+
+                <!-- Value Proposition Highlights -->
+                <div class="feature-pillars-list" id="pillarsList">
+                    <div class="feature-pillar-item">
+                        <div class="pillar-icon-box">
+                            <i class="fa-solid fa-shield-halved" id="pillarIcon1"></i>
+                        </div>
+                        <div class="pillar-text-group">
+                            <div class="pillar-title" id="pillarTitle1">100% Verified Job Postings</div>
+                            <div class="pillar-sub" id="pillarSub1">Direct company hiring without intermediaries or spam</div>
+                        </div>
+                    </div>
+                    <div class="feature-pillar-item">
+                        <div class="pillar-icon-box">
+                            <i class="fa-solid fa-bolt" id="pillarIcon2"></i>
+                        </div>
+                        <div class="pillar-text-group">
+                            <div class="pillar-title" id="pillarTitle2">Real-Time Application Status</div>
+                            <div class="pillar-sub" id="pillarSub2">Track when recruiters review, shortlist, and invite you</div>
+                        </div>
+                    </div>
+                    <div class="feature-pillar-item">
+                        <div class="pillar-icon-box">
+                            <i class="fa-solid fa-comments" id="pillarIcon3"></i>
+                        </div>
+                        <div class="pillar-text-group">
+                            <div class="pillar-title" id="pillarTitle3">Fast-Track Hiring Workflow</div>
+                            <div class="pillar-sub" id="pillarSub3">Quick interview scheduling and status transparency</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Statistics Row -->
+                <div class="trust-stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number-val">10K+</div>
+                        <div class="stat-title-lbl">Active Jobs</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number-val">500+</div>
+                        <div class="stat-title-lbl">Verified Firms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number-val">25K+</div>
+                        <div class="stat-title-lbl">Professionals</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Left Footer -->
+            <div class="left-bottom-bar">
+                <span>&copy; @DateTime.Now.Year JobNest Technologies.</span>
+                <a href="mailto:support@jobnest.com">support@jobnest.com</a>
+            </div>
+        </aside>
+
+        <!-- ==========================================
+             RIGHT PANEL: Elevated Focused Auth Card
+             ========================================== -->
+        <main class="right-form-panel">
+
+            <!-- Form Card Wrapper (Perfect Center Alignment) -->
+            <div class="form-card-wrapper">
+                <div class="auth-elevated-card">
+
+                    <!-- Card Header -->
+                    <div class="card-header-block">
+                        <div class="portal-role-badge" id="cardBadge">
+                            <i class="fa-solid fa-user" id="cardBadgeIcon"></i>
+                            <span id="cardBadgeText">Candidate Gateway</span>
+                        </div>
+                        <h2 class="card-main-title" id="cardHeading">Welcome Back</h2>
+                        <p class="card-sub-title" id="cardSubheading">Sign in to access your dashboard and active jobs.</p>
                     </div>
 
-                    @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { role = "form", id = "loginForm" }))
+                    <!-- Role Switcher Grid (Candidate vs Employer) -->
+                    <div class="role-switch-grid">
+                        <button type="button" class="role-switch-tile active-candidate" id="tileCandidate" title="Sign in as Candidate">
+                            <div class="tile-icon-avatar cand-avatar">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div class="tile-texts">
+                                <div class="tile-name">Candidate</div>
+                                <div class="tile-tag">Job Seeker</div>
+                            </div>
+                        </button>
+                        <button type="button" class="role-switch-tile" id="tileCompany" title="Sign in as Employer">
+                            <div class="tile-icon-avatar comp-avatar">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+                            <div class="tile-texts">
+                                <div class="tile-name">Employer</div>
+                                <div class="tile-tag">Hiring Team</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- General Error Toast -->
+                    @if (hasGeneralError)
+                    {
+                        <div class="auth-error-banner" id="errorBanner">
+                            <div class="err-icon">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </div>
+                            <div class="err-content">
+                                <div class="err-heading">Authentication Failed</div>
+                                @Html.ValidationSummary(true, "")
+                            </div>
+                            <button type="button" class="btn-dismiss-err" id="btnDismissErr" title="Dismiss">&times;</button>
+                        </div>
+                    }
+
+                    <!-- Controller Info Message -->
+                    @if (Model != null && !string.IsNullOrEmpty(Model.msg))
+                    {
+                        <div class="auth-info-banner">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>@Model.msg</span>
+                        </div>
+                    }
+
+                    <!-- Sign-In Form -->
+                    @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "loginForm", role = "form" }))
                     {
                         @Html.AntiForgeryToken()
+                        <input type="hidden" name="selectedRole" id="selectedRoleInput" value="candidate" />
 
-                        if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert-error-banner">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                @Html.ValidationSummary(true, "", new { style = "margin-bottom: 0;" })
+                        <!-- Username Field -->
+                        <div class="field-unit">
+                            <div class="field-label-line">
+                                <label for="Username">Username</label>
                             </div>
-                        }
-
-                        if (Model != null && !string.IsNullOrEmpty(Model.msg))
-                        {
-                            <div class="alert alert-info" style="border-radius: 8px; font-size: 13px; margin-bottom: 18px;">
-                                <i class="fa-solid fa-circle-info"></i> @Model.msg
-                            </div>
-                        }
-
-                        <!-- Username Input Field -->
-                        <div class="input-group-block">
-                            <div class="input-label-row">
-                                @Html.LabelFor(m => m.Username, "Username / Email ID")
-                            </div>
-                            <div class="spacious-input-wrapper">
-                                <i class="fa-solid fa-user lead-icon"></i>
-                                @Html.TextBoxFor(m => m.Username, new { 
-                                    @class = "spacious-control", 
-                                    placeholder = "Enter your username", 
-                                    autocomplete = "username" 
+                            <div class="field-input-box">
+                                <span class="field-lead-icon"><i class="fa-solid fa-user"></i></span>
+                                @Html.TextBoxFor(m => m.Username, new
+                                {
+                                    @class = "field-control",
+                                    id = "Username",
+                                    placeholder = "Enter your username",
+                                    autocomplete = "username"
                                 })
                             </div>
-                            @Html.ValidationMessageFor(m => m.Username)
+                            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "field-validation-error" })
                         </div>
 
-                        <!-- Password Input Field -->
-                        <div class="input-group-block">
-                            <div class="input-label-row">
-                                @Html.LabelFor(m => m.Password, "Password")
-                                <a href="javascript:void(0);" class="forgot-link" onclick="alert('Please contact your administrator or HR support to reset your password.');">
-                                    Forgot Password?
-                                </a>
+                        <!-- Password Field -->
+                        <div class="field-unit">
+                            <div class="field-label-line">
+                                <label for="Password">Password</label>
+                                <a href="javascript:void(0);" class="link-forgot-pass" id="btnTriggerForgot">Forgot Password?</a>
                             </div>
-                            <div class="spacious-input-wrapper">
-                                <i class="fa-solid fa-lock lead-icon"></i>
-                                @Html.PasswordFor(m => m.Password, new { 
-                                    @class = "spacious-control", 
-                                    id = "loginPasswordInput",
-                                    placeholder = "Enter your password", 
-                                    autocomplete = "current-password" 
+                            <div class="field-input-box">
+                                <span class="field-lead-icon"><i class="fa-solid fa-lock"></i></span>
+                                @Html.PasswordFor(m => m.Password, new
+                                {
+                                    @class = "field-control",
+                                    id = "Password",
+                                    placeholder = "Enter your password",
+                                    autocomplete = "current-password"
                                 })
-                                <button type="button" class="btn-eye-toggle" id="togglePasswordBtn" title="Show or hide password" aria-label="Toggle password visibility">
-                                    <i class="fa-solid fa-eye-slash" id="togglePasswordIcon"></i>
+                                <button type="button" class="btn-eye-toggle" id="btnTogglePassword" tabindex="-1" title="Show or hide password" aria-label="Toggle password visibility">
+                                    <i class="fa-solid fa-eye-slash" id="iconEye"></i>
                                 </button>
                             </div>
-                            @Html.ValidationMessageFor(m => m.Password)
+                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "field-validation-error" })
                         </div>
 
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn-naukri-submit">
-                            <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+                        <!-- Forgot Password Inline Assistance Card -->
+                        <div class="forgot-help-card" id="forgotCard">
+                            <button type="button" class="forgot-help-close" id="btnCloseForgotCard" title="Dismiss">&times;</button>
+                            <div style="font-weight: 700; margin-bottom: 2px;">
+                                <i class="fa-solid fa-circle-question" style="margin-right: 4px;"></i> Reset Credentials
+                            </div>
+                            <p style="margin: 0; font-size: 12px; color: #1e3a8a;">
+                                Please contact your portal administrator or email
+                                <a href="mailto:support@jobnest.com" style="color: #185adb; font-weight: 700; text-decoration: underline;">support@jobnest.com</a>
+                                with your registered username.
+                            </p>
+                        </div>
+
+                        <!-- Submit Action Button -->
+                        <button type="submit" class="btn-action-submit" id="btnSubmit">
+                            <span id="btnSubmitLabel">Sign In as Candidate</span>
+                            <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     }
 
-                    <!-- Registration Options -->
-                    <div class="register-prompt-area">
-                        <p>Don't have a JobNest account yet?</p>
-                        <div class="register-cards-row">
-                            <a href="@Url.Action("AddEmployee", "Employee")" class="btn-reg-card candidate">
-                                <i class="fa-solid fa-user-plus"></i> Candidate Register
+                    <!-- Registration Gateway -->
+                    <div class="register-gateway-block">
+                        <div class="register-prompt-lbl">Don't have a JobNest account yet?</div>
+                        <div class="reg-action-buttons">
+                            <a href="@Url.Action("AddEmployee", "Employee")" class="reg-tile-btn reg-cand">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Candidate Register</span>
+                                <i class="fa-solid fa-arrow-right btn-arrow-arr"></i>
                             </a>
-                            <a href="@Url.Action("AddCompany", "Company")" class="btn-reg-card employer">
-                                <i class="fa-solid fa-building-circle-check"></i> Company Register
+                            <a href="@Url.Action("AddCompany", "Company")" class="reg-tile-btn reg-comp">
+                                <i class="fa-solid fa-building-circle-check"></i>
+                                <span>Company Register</span>
+                                <i class="fa-solid fa-arrow-right btn-arrow-arr"></i>
                             </a>
                         </div>
                     </div>
@@ -665,36 +1232,133 @@
                 </div>
             </div>
 
-        </div>
+            <!-- Right Bottom Bar -->
+            <div class="right-bottom-bar">
+                <span>Protected by industry-grade encryption &bull; JobNest Portal</span>
+            </div>
+
+        </main>
+
     </div>
 
-    <!-- Clean Bottom Footer -->
-    <footer class="auth-bottom-footer">
-        <div class="container">
-            <p style="margin: 0;">&copy; @DateTime.Now.Year JobNest. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Native ASP.NET MVC Validation Bundles -->
+    <!-- ASP.NET MVC Bundles -->
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/jqueryval")
 
     <script>
         $(document).ready(function () {
-            // Password Show/Hide Toggle
-            $("#togglePasswordBtn").click(function (e) {
-                e.preventDefault();
-                var pwdInput = $("#loginPasswordInput");
-                var icon = $("#togglePasswordIcon");
 
-                if (pwdInput.attr("type") === "password") {
-                    pwdInput.attr("type", "text");
+            // Role persistence using sessionStorage
+            var savedRole = sessionStorage.getItem("jobnest_auth_role") || "candidate";
+            var currentRole = savedRole;
+
+            function applyRole(role) {
+                currentRole = role;
+                sessionStorage.setItem("jobnest_auth_role", role);
+                $("#selectedRoleInput").val(role);
+
+                if (role === "company") {
+                    $("body").removeClass("role-candidate").addClass("role-company");
+
+                    // Tile selection
+                    $("#tileCandidate").removeClass("active-candidate active-company");
+                    $("#tileCompany").removeClass("active-candidate").addClass("active-company");
+
+                    // Right card copy
+                    $("#btnSubmitLabel").text("Sign In as Employer");
+                    $("#cardHeading").text("Employer Portal");
+                    $("#cardSubheading").text("Sign in to publish job postings and manage candidate pipelines.");
+                    $("#cardBadgeText").text("Recruiter Gateway");
+                    $("#cardBadgeIcon").removeClass("fa-user").addClass("fa-building");
+
+                    // Left panel copy
+                    $("#statusPortalText").text("Employer Network");
+                    $("#narrativeBadgeText").text("Enterprise Hiring Suite");
+                    $("#narrativeHeadline").text("Build & Scale Your High-Performing Team");
+                    $("#narrativeDesc").text("Access top-tier pre-vetted candidates. Post openings, manage talent pipelines, and hire with confidence.");
+
+                    // Left pillars
+                    $("#pillarIcon1").attr("class", "fa-solid fa-magnifying-glass-chart");
+                    $("#pillarTitle1").text("Targeted Talent Search");
+                    $("#pillarSub1").text("Filter vetted candidates by precise skills and experience");
+
+                    $("#pillarIcon2").attr("class", "fa-solid fa-sliders");
+                    $("#pillarTitle2").text("Candidate Pipeline Manager");
+                    $("#pillarSub2").text("Review resumes and shortlist candidates in one unified place");
+
+                    $("#pillarIcon3").attr("class", "fa-solid fa-id-badge");
+                    $("#pillarTitle3").text("Employer Brand Showcase");
+                    $("#pillarSub3").text("Attract top professionals to your company culture");
+                } else {
+                    $("body").removeClass("role-company").addClass("role-candidate");
+
+                    // Tile selection
+                    $("#tileCompany").removeClass("active-candidate active-company");
+                    $("#tileCandidate").removeClass("active-company").addClass("active-candidate");
+
+                    // Right card copy
+                    $("#btnSubmitLabel").text("Sign In as Candidate");
+                    $("#cardHeading").text("Welcome Back");
+                    $("#cardSubheading").text("Sign in to access your dashboard and active jobs.");
+                    $("#cardBadgeText").text("Candidate Gateway");
+                    $("#cardBadgeIcon").removeClass("fa-building").addClass("fa-user");
+
+                    // Left panel copy
+                    $("#statusPortalText").text("Candidate Network");
+                    $("#narrativeBadgeText").text("Verified Career Hub");
+                    $("#narrativeHeadline").text("Your Next Career Move Starts Here");
+                    $("#narrativeDesc").text("Discover verified roles from top tech and corporate employers. Track applications seamlessly and elevate your career.");
+
+                    // Left pillars
+                    $("#pillarIcon1").attr("class", "fa-solid fa-shield-halved");
+                    $("#pillarTitle1").text("100% Verified Job Postings");
+                    $("#pillarSub1").text("Direct company hiring without intermediaries or spam");
+
+                    $("#pillarIcon2").attr("class", "fa-solid fa-bolt");
+                    $("#pillarTitle2").text("Real-Time Application Status");
+                    $("#pillarSub2").text("Track when recruiters review, shortlist, and invite you");
+
+                    $("#pillarIcon3").attr("class", "fa-solid fa-comments");
+                    $("#pillarTitle3").text("Fast-Track Hiring Workflow");
+                    $("#pillarSub3").text("Quick interview scheduling and status transparency");
+                }
+            }
+
+            // Apply initially
+            applyRole(savedRole);
+
+            // Role selection events
+            $("#tileCandidate").on("click", function () { applyRole("candidate"); });
+            $("#tileCompany").on("click", function () { applyRole("company"); });
+
+            // Password eye toggle
+            $("#btnTogglePassword").on("click", function (e) {
+                e.preventDefault();
+                var pwd = $("#Password");
+                var icon = $("#iconEye");
+                if (pwd.attr("type") === "password") {
+                    pwd.attr("type", "text");
                     icon.removeClass("fa-eye-slash").addClass("fa-eye");
                 } else {
-                    pwdInput.attr("type", "password");
+                    pwd.attr("type", "password");
                     icon.removeClass("fa-eye").addClass("fa-eye-slash");
                 }
+            });
+
+            // Forgot password help toggle
+            $("#btnTriggerForgot").on("click", function (e) {
+                e.preventDefault();
+                $("#forgotCard").slideToggle(200);
+            });
+
+            $("#btnCloseForgotCard").on("click", function () {
+                $("#forgotCard").slideUp(200);
+            });
+
+            // Dismiss error banner
+            $("#btnDismissErr").on("click", function () {
+                $(this).closest(".auth-error-banner").slideUp(200);
             });
         });
     </script>
