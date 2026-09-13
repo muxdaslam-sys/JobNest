@@ -35,9 +35,14 @@ jobs:
         $vstest = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find **\vstest.console.exe | Select-Object -First 1
         & $vstest JobNest.Tests\bin\Release\JobNest.Tests.dll
 
-    - name: 8. Package Web Application for Azure
+    - name: 7. Publish Web Application to Staging Directory
       run: |
-        msbuild JobNest\JobNest.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="${{ github.workspace }}\publish\JobNest.zip"
+        msbuild JobNest\JobNest.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:publishUrl="${{ github.workspace }}\publish\app"
+
+    - name: 8. Create Flat Deployment Zip
+      shell: powershell
+      run: |
+        Compress-Archive -Path "${{ github.workspace }}\publish\app\*" -DestinationPath "${{ github.workspace }}\publish\JobNest.zip"
 
     - name: 9. Upload Packaged Web App Artifact
       uses: actions/upload-artifact@v4
