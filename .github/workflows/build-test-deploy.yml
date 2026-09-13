@@ -29,11 +29,11 @@ jobs:
     - name: 5. Build Solution (Release)
       run: msbuild JobNest.sln /p:Configuration=Release
 
-    - name: 6. Setup VSTest Runner
-      uses: microsoft/setup-vstest@v1
-
-    - name: 7. Run All Unit Tests
-      run: vstest.console.exe JobNest.Tests\bin\Release\JobNest.Tests.dll
+    - name: 6. Run All Unit Tests
+      shell: powershell
+      run: |
+        $vstest = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find **\vstest.console.exe | Select-Object -First 1
+        & $vstest JobNest.Tests\bin\Release\JobNest.Tests.dll
 
     - name: 8. Package Web Application for Azure
       run: |
