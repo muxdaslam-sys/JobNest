@@ -86,6 +86,7 @@ namespace JobNest.Controllers
 
         // POST: AddEmployee
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AddEmployee(EmployeeClass cls,HttpPostedFileBase file)
         {
             // 1. Check if Username already exists in Database
@@ -128,37 +129,6 @@ namespace JobNest.Controllers
             return View();
         }
 
-        [HttpGet]
-        public ActionResult ViewJobDetails(int JobId)
-        {
-            int employeeLoginId = Convert.ToInt32(Session["LoginId"]);
-            var LoginType = Session["LoginType"];
-            if (employeeLoginId <= 0 || LoginType == null || LoginType.ToString().ToLower() != "employee")
-            {
-                return RedirectToAction("Login", "Account");
-            }
-            var query = from job in db.JobPostings
-                        join login in db.UserLogins on job.CompanyId equals login.LoginId
-                        join company in db.Companies on login.RegistrationId equals company.CompanyId
-                        where job.JobId == JobId 
-                        select new JobPostingView
-                        {
-                            JobId = job.JobId,
-                            CompanyId = login.LoginId,
-                            CompanyName = company.CompanyName,
-                            JobTitle = job.JobTitle,
-                            ExperienceRequired = job.ExperienceRequired,
-                            RequiredSkills = job.RequiredSkills,
-                            JobLocation = job.JobLocation,
-                            RequiredQualification = job.RequiredQualification,
-                            Salary = job.Salary,
-                            PostDate = job.PostDate,
-                            EndDate = job.EndDate,
-                            JobStatus = job.JobStatus
-                        };
-            ViewBag.ViewJobDetails = query.ToList();
-            return View();
-        }
         [HttpGet]
         public ActionResult JobApplication(int JobId)
         {
