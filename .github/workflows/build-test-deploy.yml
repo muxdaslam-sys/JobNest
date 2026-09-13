@@ -1,0 +1,68 @@
+name: JobNest Build, Test & Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ==========================================
+  # STAGE 1: BUILD & TEST (CI)
+  # ==========================================
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: 1. Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: 2. Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: 3. Restore NuGet Dependencies
+      run: nuget restore JobNest.sln
+
+    - name: 4. Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: 5. Build Solution (Release)
+      run: msbuild JobNest.sln /p:Configuration=Release
+
+    - name: 6. Run All Unit Tests
+      shell: powershell
+      run: |
+        $vstest = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find **\vstest.console.exe | Select-Object -First 1
+        & $vstest JobNest.Tests\bin\Release\JobNest.Tests.dll
+
+    - name: 8. Package Web Application for Azure
+      run: |
+        msbuild JobNest\JobNest.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="${{ github.workspace }}\publish\JobNest.zip"
+
+    - name: 9. Upload Packaged Web App Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: webapp-package
+        path: ${{ github.workspace }}\publish\JobNest.zip
+
+  # ==========================================
+  # STAGE 2: DEPLOY TO AZURE (CD)
+  # ==========================================
+  deploy:
+    needs: build-and-test
+    runs-on: windows-latest
+    if: github.ref == 'refs/heads/main' # Only deploys automatically when merged into main
+
+    steps:
+    - name: 1. Download Packaged App Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: webapp-package
+        path: ${{ github.workspace }}\publish
+
+    - name: 2. Deploy to Azure App Service
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'JobNest'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: '${{ github.workspace }}\publish\JobNest.zip'

@@ -48,6 +48,8 @@ Desktop.ini
 *.mdf
 *.ldf
 *.log
+*.bak
 
 # Uploaded user files
 JobNest/Uploads/
+JobNest/Images/Employee/Profiles/
