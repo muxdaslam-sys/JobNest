@@ -6,11 +6,12 @@
 ![C#](https://img.shields.io/badge/C%23-Language-239120.svg)
 ![Entity Framework](https://img.shields.io/badge/Entity%20Framework-6.2.0-512BD4.svg)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-CC292B.svg)
-![Azure](https://img.shields.io/badge/Azure-App%20Service-0078D4.svg)
-![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+[![Azure](https://img.shields.io/badge/Azure-App%20Service-0078D4.svg)](https://jobnest-e8gwccfzgmgbdthe.southindia-01.azurewebsites.net/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20JobNest-00C853?style=for-the-badge&logo=azuredevops&logoColor=white)](https://jobnest-e8gwccfzgmgbdthe.southindia-01.azurewebsites.net/)
 
 > **JobNest** is a full-stack, enterprise-grade job portal and recruitment management platform engineered with **ASP.NET MVC 5**, **C#**, **Entity Framework 6**, and **Microsoft SQL Server**. It provides seamless, dual-role workflows tailored for job seekers and hiring managers, accompanied by an automated **GitHub Actions CI/CD** pipeline deploying directly to **Microsoft Azure App Service**.
+>
+> 🌐 **Live URL**: [https://jobnest-e8gwccfzgmgbdthe.southindia-01.azurewebsites.net](https://jobnest-e8gwccfzgmgbdthe.southindia-01.azurewebsites.net/)
 
 ---
 
@@ -255,9 +256,9 @@ vstest.console.exe JobNest.Tests\bin\Release\JobNest.Tests.dll
 
 ## 👤 Author & Acknowledgments
 
-- **Muqadas Aslam** — *Full Stack .NET Developer*
+- **Muhammed Aslam** — *Full Stack .NET Developer*
   - GitHub: [@muxdaslam-sys](https://github.com/muxdaslam-sys)
-  - LinkedIn: [Connect on LinkedIn](https://www.linkedin.com/)
+  - LinkedIn: [Muhammed Aslam](https://www.linkedin.com/in/muxd-aslam)
 
 ---
 
