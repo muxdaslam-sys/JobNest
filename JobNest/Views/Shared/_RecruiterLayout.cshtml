@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - JobNest Recruiter Hub</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Bootstrap & Site CSS Bundles -->
+    @Styles.Render("~/Content/css")
+
+    <style>
+        :root {
+            --primary-blue: #185adb;
+            --hover-blue: #1041a3;
+            --light-blue: #eff6ff;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Recruiter Navigation Bar */
+        .recruiter-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        .nav-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        /* Left: Logo & Branding */
+        .brand-logo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none !important;
+        }
+
+        .brand-icon-box {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+            color: #ffffff;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            box-shadow: 0 3px 8px rgba(24, 90, 219, 0.28);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.4px;
+        }
+
+        .brand-title span {
+            color: var(--primary-blue);
+        }
+
+        .brand-badge {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border: 1px solid #bfdbfe;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Right: Actions Cluster */
+        .nav-right-cluster {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* Primary Quick CTA: Post Job */
+        .btn-quick-post {
+            background: linear-gradient(135deg, #185adb 0%, #2563eb 100%);
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(24, 90, 219, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .btn-quick-post:hover {
+            background: linear-gradient(135deg, #1041a3 0%, #185adb 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(24, 90, 219, 0.35);
+        }
+
+        /* User Profile Trigger & Dropdown */
+        .user-dropdown-container {
+            position: relative;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 12px 5px 6px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .user-profile-trigger:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #185adb 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .user-meta {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            line-height: 1.25;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dark);
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role-tag {
+            font-size: 11px;
+            font-weight: 500;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .user-role-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #10b981;
+        }
+
+        .user-caret {
+            font-size: 11px;
+            color: #94a3b8;
+            transition: transform 0.2s ease;
+        }
+
+        /* Dropdown Menu */
+        .user-menu-popover {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 240px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+            padding: 8px 0;
+            display: none;
+            z-index: 1100;
+        }
+
+        .user-menu-popover.show {
+            display: block;
+            animation: menuFadeIn 0.15s ease-out;
+        }
+
+        @@keyframes menuFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .menu-header {
+            padding: 10px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .menu-header-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .menu-header-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .menu-link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            text-decoration: none !important;
+            transition: all 0.15s ease;
+        }
+
+        .menu-link-item i {
+            font-size: 14px;
+            color: #64748b;
+            width: 18px;
+            text-align: center;
+        }
+
+        .menu-link-item:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .menu-link-item:hover i {
+            color: var(--primary-blue);
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #f1f5f9;
+            margin: 6px 0;
+        }
+
+        .menu-link-logout {
+            color: #dc2626 !important;
+        }
+
+        .menu-link-logout i {
+            color: #dc2626 !important;
+        }
+
+        .menu-link-logout:hover {
+            background-color: #fef2f2 !important;
+        }
+
+        /* Main Content */
+        .company-main-content {
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Footer */
+        .company-footer {
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            padding: 24px 0;
+            margin-top: auto;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-nav {
+            display: flex;
+            gap: 18px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-nav a {
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-nav a:hover {
+            color: var(--primary-blue);
+        }
+    </style>
+
+    @RenderSection("styles", required: false)
+</head>
+<body>
+
+    <!-- Recruiter Header (Clean Logo Left + User Dropdown Right) -->
+    <header class="recruiter-header">
+        <div class="container">
+            <div class="nav-wrapper">
+                
+                <!-- Left: Branding Logo -->
+                <a href="@Url.Action("Index", "Company")" class="brand-logo-link">
+                    <div class="brand-icon-box">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div class="brand-title">Job<span>Nest</span></div>
+                    <span class="brand-badge">Recruiter Hub</span>
+                </a>
+
+                <!-- Right: Quick CTA + User Details Dropdown -->
+                <div class="nav-right-cluster">
+                    
+                    <!-- 1-Click Quick Post Job Button -->
+                    <a href="@Url.Action("AddJobPosting", "Company")" class="btn-quick-post hidden-xs">
+                        <i class="fa-solid fa-circle-plus"></i> Post Job
+                    </a>
+
+                    <!-- User Profile Trigger -->
+                    <div class="user-dropdown-container">
+                        <div class="user-profile-trigger" id="userMenuTrigger" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                            <div class="user-avatar">
+                                @(Session["Username"] != null && Session["Username"].ToString().Length > 0 ? Session["Username"].ToString().Substring(0, 1).ToUpper() : "C")
+                            </div>
+                            <div class="user-meta hidden-xs">
+                                <span class="user-name">@(Session["Username"] != null ? Session["Username"].ToString() : "Employer Account")</span>
+                                <span class="user-role-tag">
+                                    <span class="user-role-dot"></span> Recruiter
+                                </span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down user-caret" id="menuCaret"></i>
+                        </div>
+
+                        <!-- Dropdown Menu -->
+                        <div class="user-menu-popover" id="userMenuPopover">
+                            <div class="menu-header">
+                                <h5 class="menu-header-title">@(Session["Username"] != null ? Session["Username"].ToString() : "Employer Account")</h5>
+                                <p class="menu-header-sub">Recruiter Management</p>
+                            </div>
+
+                            <a href="@Url.Action("Index", "Company")" class="menu-link-item">
+                                <i class="fa-solid fa-gauge-high"></i> Dashboard
+                            </a>
+                            <a href="@Url.Action("AddJobPosting", "Company")" class="menu-link-item">
+                                <i class="fa-solid fa-circle-plus"></i> Post a New Job
+                            </a>
+                            <a href="@Url.Action("ViewJobPostings", "Company")" class="menu-link-item">
+                                <i class="fa-solid fa-layer-group"></i> Manage Job Postings
+                            </a>
+
+                            <div class="menu-divider"></div>
+
+                            <a href="@Url.Action("Logout", "Account")" class="menu-link-item menu-link-logout">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content -->
+    <main class="company-main-content">
+        @RenderBody()
+    </main>
+
+    <!-- Clean Footer -->
+    <footer class="company-footer">
+        <div class="container">
+            <div class="footer-flex">
+                <div>
+                    &copy; @DateTime.Now.Year JobNest Recruiter Hub. All rights reserved.
+                </div>
+                <ul class="footer-nav">
+                    <li><a href="@Url.Action("Index", "Company")">Dashboard</a></li>
+                    <li><a href="@Url.Action("AddJobPosting", "Company")">Post Job</a></li>
+                    <li><a href="@Url.Action("ViewJobPostings", "Company")">Manage Postings</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        $(document).ready(function () {
+            var $trigger = $("#userMenuTrigger");
+            var $popover = $("#userMenuPopover");
+            var $caret = $("#menuCaret");
+
+            function toggleMenu(e) {
+                if (e) e.stopPropagation();
+                var isOpen = $popover.hasClass("show");
+                if (isOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+
+            function openMenu() {
+                $popover.addClass("show");
+                $caret.css("transform", "rotate(180deg)");
+                $trigger.attr("aria-expanded", "true");
+            }
+
+            function closeMenu() {
+                $popover.removeClass("show");
+                $caret.css("transform", "rotate(0deg)");
+                $trigger.attr("aria-expanded", "false");
+            }
+
+            $trigger.on("click", toggleMenu);
+
+            $trigger.on("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleMenu();
+                }
+            });
+
+            // Close on click outside
+            $(document).on("click", function (e) {
+                if (!$(e.target).closest(".user-dropdown-container").length) {
+                    closeMenu();
+                }
+            });
+
+            // Close on Escape key
+            $(document).on("keydown", function (e) {
+                if (e.key === "Escape") {
+                    closeMenu();
+                }
+            });
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+
+    <script type="text/javascript">
+        // Prevent back-button viewing of cached authenticated pages after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>

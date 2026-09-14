@@ -1,7 +1,7 @@
 @model IEnumerable<JobNest.JobPosting>
 
 @{
-    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
     ViewBag.Title = "Manage Job Postings";
 
     var postings = (Model ?? (ViewBag.AllPostings as IEnumerable<JobNest.JobPosting>) ?? new List<JobNest.JobPosting>()).ToList();

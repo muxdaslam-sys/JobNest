@@ -1,7 +1,7 @@
 @model IEnumerable<JobNest.Models.CandidateApplicationViewModel>
 
 @{
-    Layout = "~/Views/Shared/_CompanyLayout.cshtml";
+    Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
     ViewBag.Title = "Candidate Applications";
 
     var applications = (Model ?? (ViewBag.AllApplications as IEnumerable<JobNest.Models.CandidateApplicationViewModel>) ?? new List<JobNest.Models.CandidateApplicationViewModel>()).ToList();
